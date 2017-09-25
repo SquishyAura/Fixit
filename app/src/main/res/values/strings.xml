@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Fixit</string>
+    <string name="textview_username">Enter a username</string>
+    <string name="edittext_usernameinput_hint">Name</string>
+    <string name="btn_login">Login</string>
+    <string name="toast_success">Successful</string>
+    <string name="toast_error_usernamespecialchar">Invalid username, use letters and numbers only</string>
+    <string name="toast_error_usernamelength">Your username must be between 4 and 30 characters</string>
+    <string name="toast_error_usernamealreadyexists">Username already exists, please try another</string>
 </resources>
