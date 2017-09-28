@@ -7,4 +7,7 @@
     <string name="toast_error_usernamespecialchar">Invalid username, use letters and numbers only</string>
     <string name="toast_error_usernamelength">Your username must be between 4 and 30 characters</string>
     <string name="toast_error_usernamealreadyexists">Username already exists, please try another</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>
