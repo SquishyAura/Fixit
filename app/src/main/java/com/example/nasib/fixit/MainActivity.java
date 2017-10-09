@@ -75,6 +75,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
 
+        //Set the current tab
+        mViewPager.setCurrentItem(1,false);
+
     }
 
 
@@ -137,11 +140,11 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "Rewards";
                 case 1:
-                    return "SECTION 2";
+                    return "Board";
                 case 2:
-                    return "SECTION 3";
+                    return "Highscore";
             }
             return null;
         }
