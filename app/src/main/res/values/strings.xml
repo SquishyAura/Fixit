@@ -12,4 +12,11 @@
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="title_activity_maps">Map</string>
     <string name="btn_mylocation">My Location</string>
+    <string name="create_post_description">Description:</string>
+    <string name="create_post_description_hint">Describe an reported issue...</string>
+    <string name="create_post_image">Upload image</string>
+    <string name="create_post_location">Set location</string>
+    <string name="create_post_fixit">Fixit!</string>
+    <string name="create_post_Cancel">Cancel</string>
+    <string name="create_post_screen_title">Create new issue post</string>
 </resources>

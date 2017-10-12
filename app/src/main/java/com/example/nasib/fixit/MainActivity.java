@@ -63,8 +63,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                createPost(view);
             }
         });
 
@@ -79,6 +78,11 @@ public class MainActivity extends AppCompatActivity {
         //Set the current tab
         mViewPager.setCurrentItem(1,false);
 
+    }
+
+    private void createPost(View view){
+        Intent intent = new Intent(this, CreatePostActivity.class);
+        startActivity(intent);
     }
 
 
