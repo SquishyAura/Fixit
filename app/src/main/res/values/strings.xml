@@ -10,6 +10,8 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="btn_mylocation">My Location</string>
     <string name="create_post_description">Description:</string>
     <string name="create_post_description_hint">Describe an reported issue...</string>
     <string name="create_post_image">Upload image</string>
