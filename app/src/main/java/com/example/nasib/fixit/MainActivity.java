@@ -2,6 +2,7 @@ package com.example.nasib.fixit;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -19,7 +20,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.view.Window;
 import android.widget.TextView;
+
+import com.example.nasib.fixit.Entities.Post;
+import com.example.nasib.fixit.Entities.User;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,14 +47,14 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-
+    private DatabaseReference database;
     private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        database = FirebaseDatabase.getInstance().getReference();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
@@ -57,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-
+        /*
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
 
         //Check if user is already registered, by checking the shared preferences file
         prefs = getSharedPreferences("Fixit_Preferences",MODE_PRIVATE);
@@ -78,8 +88,36 @@ public class MainActivity extends AppCompatActivity {
         //Set the current tab
         mViewPager.setCurrentItem(1,false);
 
-    }
+        //Listener listens when the user changes tabs. We use this in order to only fetch things from the database when the user enters a certain tab.
+        mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
 
+            @Override
+            public void onPageSelected(int position) {
+                if(mViewPager.getCurrentItem() == 0){ //if current page is the board page
+                    System.out.println("wow");
+                    final Post post = new Post("this is a description", 0, new Location("rawr"), "Solved", "ugabugaimage", new User("TESTUSER", 15, 10, "2017-09-08"));
+                    database.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            database.child("posts").push().setValue(post);
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) { }
+        });
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
