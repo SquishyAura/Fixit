@@ -54,7 +54,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         database = FirebaseDatabase.getInstance().getReference();
+      
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
@@ -72,8 +74,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                createPost(view);
             }
         });*/
 
@@ -99,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("wow");
                     final Post post = new Post("this is a description", 0, new Location("rawr"), "Solved", "ugabugaimage", new User("TESTUSER", 15, 10, "2017-09-08"));
                     database.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
-
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             database.child("posts").push().setValue(post);
@@ -117,6 +117,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageScrollStateChanged(int state) { }
         });
+    }
+
+    private void createPost(View view){
+        Intent intent = new Intent(this, CreatePostActivity.class);
+        startActivity(intent);
     }
 
     @Override
