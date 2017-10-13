@@ -19,4 +19,6 @@
     <string name="create_post_fixit">Fixit!</string>
     <string name="create_post_Cancel">Cancel</string>
     <string name="create_post_screen_title">Create new issue post</string>
+    <string name="create_post_successful">Post successfully created.</string>
+    <string name="create_post_failed_too_shortlong">Description must be between 10 and 200 characters.</string>
 </resources>

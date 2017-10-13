@@ -63,6 +63,7 @@
 
     <Button
         android:id="@+id/fixitButtonCreatePost"
+        android:onClick="btnSubmitPostOnClick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/create_post_fixit"
@@ -73,6 +74,7 @@
 
     <Button
         android:id="@+id/cancelButtonCreatePost"
+        android:onClick="btnCancelPostOnClick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/create_post_Cancel"
