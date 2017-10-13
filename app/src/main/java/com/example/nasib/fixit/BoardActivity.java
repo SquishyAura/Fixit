@@ -27,11 +27,7 @@ import java.util.List;
 
 public class BoardActivity extends Fragment{
     ListView simpleList;
-    String descriptionList[] = {"India", "China", "australia", "Portugle", "America", "NewZealand", "China", "australia", "Portugle", "America", "NewZealand"};
-    int upvoteList[] = {3, 1, 8, 2, 6, 4, 1, 8, 2, 6, 4};
-    int distanceList[] = {100, 251, 900, 1052, 240, 810, 251, 900, 1052, 240, 810};
 
-    int size;
     List<String> descriptionListt;
     List<Integer> upvoteListt;
     List<String> locationListt;
@@ -46,7 +42,13 @@ public class BoardActivity extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        size = 1;
+        View rootView = inflater.inflate(R.layout.fragment_board, container, false);
+
+        return rootView;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
         descriptionListt = new ArrayList<>();
         upvoteListt = new ArrayList<>();
         locationListt = new ArrayList<>();
@@ -55,27 +57,7 @@ public class BoardActivity extends Fragment{
         authorListt = new ArrayList<>();
         database = FirebaseDatabase.getInstance().getReference();
 
-        /* TEMPORARY CODE TO MAKE A POST
-        final Post post = new Post("this is a description", 0, new Location("rawr"), "Solved", "ugabugaimage", new User("TESTUSER", 15, 10, "2017-09-08"));
-        database.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
-
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                database.child("posts").push().setValue(post);
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });*/
-
-
-
-        View rootView = inflater.inflate(R.layout.fragment_board, container, false);
-
-        simpleList = (ListView) rootView.findViewById(R.id.boardListView); //creates a simple list with the layout of fragment_board.xml
+        simpleList = (ListView) view.findViewById(R.id.boardListView); //creates a simple list with the layout of fragment_board.xml
 
         database.child("posts").addValueEventListener(new ValueEventListener() {
             @Override
@@ -93,11 +75,13 @@ public class BoardActivity extends Fragment{
                     locationListt.add(post.child("location").child("provider").getValue().toString());
                     statusListt.add(post.child("status").getValue().toString());
                     imageListt.add(post.child("image").getValue().toString());
-                    authorListt.add(post.child("author").child("username").getValue().toString());
+                    authorListt.add(post.child("author").getValue().toString());
                 }
 
-                BoardCustomAdapter customAdapter = new BoardCustomAdapter(getActivity().getApplicationContext(), descriptionListt, upvoteListt, locationListt, statusListt, /*imageListt,*/ authorListt);
-                simpleList.setAdapter(customAdapter);
+                if(getActivity() != null && getContext() != null){
+                    BoardCustomAdapter customAdapter = new BoardCustomAdapter(getActivity(), descriptionListt, upvoteListt, locationListt, statusListt, /*imageListt,*/ authorListt);
+                    simpleList.setAdapter(customAdapter);
+                }
             }
 
             @Override
@@ -105,7 +89,5 @@ public class BoardActivity extends Fragment{
 
             }
         });
-
-        return rootView;
     }
 }

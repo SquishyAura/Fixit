@@ -47,15 +47,13 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-    private DatabaseReference database;
+
     private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        database = FirebaseDatabase.getInstance().getReference();
       
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -96,32 +94,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                if(mViewPager.getCurrentItem() == 0){ //if current page is the board page
+                if(mViewPager.getCurrentItem() == 1){ //if current tab is the board tab
                     System.out.println("wow");
-                    final Post post = new Post("this is a description", 0, new Location("rawr"), "Solved", "ugabugaimage", new User("TESTUSER", 15, 10, "2017-09-08"));
-                    database.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            database.child("posts").push().setValue(post);
-
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
                 }
             }
 
             @Override
             public void onPageScrollStateChanged(int state) { }
         });
-    }
-
-    private void createPost(View view){
-        Intent intent = new Intent(this, CreatePostActivity.class);
-        startActivity(intent);
     }
 
     @Override
@@ -144,6 +124,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void btnCreatePostOnClick(View view) {
+        Intent intent = new Intent(this, CreatePostActivity.class);
+        startActivity(intent);
     }
 
     /**

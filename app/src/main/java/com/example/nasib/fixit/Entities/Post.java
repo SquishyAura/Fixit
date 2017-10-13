@@ -15,13 +15,13 @@ public class Post {
     public Location location;
     public String status;
     public String image;
-    public User author;
+    public String author;
 
     public Post(){
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
-    public Post(String description, int upvotes, Location location, String status, String image, User author) {
+    public Post(String description, int upvotes, Location location, String status, String image, String author) {
         this.description = description;
         this.upvotes = upvotes;
         this.location = location;
