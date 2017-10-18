@@ -23,6 +23,7 @@ import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class BoardActivity extends Fragment{
@@ -34,7 +35,6 @@ public class BoardActivity extends Fragment{
     List<String> statusListt;
     List<String> imageListt;
     List<String> authorListt;
-
 
     private DatabaseReference database;
 
@@ -78,8 +78,16 @@ public class BoardActivity extends Fragment{
                     authorListt.add(post.child("author").getValue().toString());
                 }
 
+                //reverse list in order to display newest post at the top
+                Collections.reverse(descriptionListt);
+                Collections.reverse(upvoteListt);
+                Collections.reverse(locationListt);
+                Collections.reverse(statusListt);
+                Collections.reverse(imageListt);
+                Collections.reverse(authorListt);
+
                 if(getActivity() != null && getContext() != null){
-                    BoardCustomAdapter customAdapter = new BoardCustomAdapter(getActivity(), descriptionListt, upvoteListt, locationListt, statusListt, /*imageListt,*/ authorListt);
+                    BoardCustomAdapter customAdapter = new BoardCustomAdapter(getActivity(), descriptionListt, upvoteListt, locationListt, statusListt, imageListt, authorListt);
                     simpleList.setAdapter(customAdapter);
                 }
             }

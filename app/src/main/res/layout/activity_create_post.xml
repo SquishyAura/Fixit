@@ -38,6 +38,7 @@
 
     <Button
         android:id="@+id/uploadImageButtonCreatePost"
+        android:onClick="btnTakePictureOnClick"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/activity_horizontal_margin_wide"

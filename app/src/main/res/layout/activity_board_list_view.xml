@@ -32,9 +32,9 @@
 
     <ImageView
         android:id="@+id/boardImage"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:src="@mipmap/ic_launcher" />
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitStart" />
 
     <TextView
         android:id="@+id/boardAuthor"
