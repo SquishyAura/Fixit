@@ -63,7 +63,6 @@ public class LoginActivity extends AppCompatActivity {
             //once the btnLoginOnClick is pressed
             mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
 
-
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if(dataSnapshot.hasChild(usernameString)){
@@ -71,7 +70,7 @@ public class LoginActivity extends AppCompatActivity {
                         Toast errorToast = Toast.makeText(getApplicationContext(),R.string.toast_error_usernamealreadyexists, Toast.LENGTH_LONG);
                         errorToast.show();
                     }else{
-                        newUser(usernameString, 0, 0, date);
+                        newUser(usernameString, 0, 0, date, false);
 
                         //Save shared preference
                         editor.putString("username", usernameString);
@@ -102,8 +101,8 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void newUser(String username, int points, int upvotes, String lastPurchase){
-        User user = new User(username, points, upvotes, lastPurchase);
+    private void newUser(String username, int points, int upvotes, String lastPurchase, boolean admin){
+        User user = new User(username, points, upvotes, lastPurchase, admin);
 
         mDatabase.child("users").child(username).setValue(user);
     }

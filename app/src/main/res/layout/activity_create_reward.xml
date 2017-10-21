@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.nasib.fixit.CreateRewardActivity">
+
+    <TextView
+        android:id="@+id/rewardNameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="32dp"
+        android:paddingLeft="32dp"
+        android:text="@string/create_reward_name"
+        tools:text="@string/create_reward_name" />
+
+    <EditText
+        android:id="@+id/rewardNameEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin_wide"
+        android:layout_marginRight="@dimen/activity_horizontal_margin_wide"
+        android:layout_marginStart="32dp"
+        android:ems="10"
+        android:hint="@string/create_reward_name_hint"
+        android:inputType="textMultiLine"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rewardNameTextView" />
+
+    <TextView
+        android:id="@+id/rewardPriceTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="32dp"
+        android:paddingLeft="32dp"
+        android:text="@string/create_reward_price"
+        app:layout_constraintTop_toBottomOf="@+id/rewardNameEditText"
+        tools:text="@string/create_reward_price" />
+
+    <EditText
+        android:id="@+id/rewardPriceEditText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="32dp"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin_wide"
+        android:layout_marginRight="@dimen/activity_horizontal_margin_wide"
+        android:layout_marginStart="32dp"
+        android:ems="10"
+        android:hint="@string/create_reward_price_hint"
+        android:inputType="textMultiLine"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rewardPriceTextView" />
+
+    <Button
+        android:id="@+id/rewardUploadImageBtn"
+        android:onClick="btnTakeRewardPictureOnClick"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin_wide"
+        android:layout_marginRight="@dimen/activity_horizontal_margin_wide"
+        android:layout_marginTop="16dp"
+        android:text="@string/create_reward_image"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rewardPriceEditText" />
+
+    <Button
+        android:id="@+id/rewardSubmitBtn"
+        android:onClick="btnSubmitRewardOnClick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/create_reward_submit"
+        app:layout_constraintRight_toLeftOf="@+id/rewardCancelBtn"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="100dp"
+        app:layout_constraintTop_toBottomOf="@+id/rewardUploadImageBtn" />
+
+    <Button
+        android:id="@+id/rewardCancelBtn"
+        android:onClick="btnCancelRewardOnClick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/create_reward_Cancel"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/rewardSubmitBtn"
+        android:layout_marginTop="102dp"
+        app:layout_constraintTop_toBottomOf="@+id/rewardUploadImageBtn" />
+</android.support.constraint.ConstraintLayout>

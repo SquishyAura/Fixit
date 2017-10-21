@@ -88,7 +88,7 @@ public class CreatePostActivity extends AppCompatActivity {
 
             //reduces image size, so that we don't get out of memory exception
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 8;
+            options.inSampleSize = 4;
 
             //a bitmap is created to decode the InputStream
             Bitmap imageBitmap = BitmapFactory.decodeStream(imageStream, null, options);
