@@ -47,14 +47,17 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-
+    private DatabaseReference mDatabase;
     private SharedPreferences prefs;
+    private SharedPreferences.Editor editor;
+    FloatingActionButton fabCreatePost;
+    FloatingActionButton fabCreateReward;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-      
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
@@ -67,41 +70,114 @@ public class MainActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
-        /*
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                createPost(view);
-            }
-        });*/
+
+        prefs = getSharedPreferences("Fixit_Preferences",MODE_PRIVATE);
+        editor = prefs.edit();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        fabCreatePost = (FloatingActionButton) findViewById(R.id.fabCreatePost);
+        fabCreateReward = (FloatingActionButton) findViewById(R.id.fabCreateReward);
 
         //Check if user is already registered, by checking the shared preferences file
-        prefs = getSharedPreferences("Fixit_Preferences",MODE_PRIVATE);
-
         if(!prefs.contains("username")){
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
+            sendUserToLoginActivity();
         }
 
-        //Set the current tab
-        mViewPager.setCurrentItem(1,false);
+        //Check if username exists database.
+        mDatabase.child("users").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(!dataSnapshot.hasChild(prefs.getString("username", null))){ //if username does not exist in database...
+                    editor.remove(prefs.getString("username", null)).commit(); //...remove from shared preference & send back to login page.
+                    sendUserToLoginActivity();
+                }
+            }
 
-        //Listener listens when the user changes tabs. We use this in order to only fetch things from the database when the user enters a certain tab.
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        //Set the current tab.
+        setDefaultTab();
+
+        //Listener listens when the user changes tabs. We use this in order to dynamically hide & show certain fabs.
         mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
             @Override
             public void onPageSelected(int position) {
+                if(mViewPager.getCurrentItem() == 0){ //if current tab is the reward tab
+                    mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            for(DataSnapshot user : dataSnapshot.getChildren()){ //if current user is an admin, they can create a reward
+                                if(Boolean.valueOf(user.child("admin").getValue().toString()) == true){
+                                    fabCreateReward.show();
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                    fabCreatePost.hide();
+                }
+
                 if(mViewPager.getCurrentItem() == 1){ //if current tab is the board tab
-                    System.out.println("wow");
+                    fabCreatePost.show();
+                    fabCreateReward.hide();
+                }
+
+                if(mViewPager.getCurrentItem() == 2){ //if current tab is the highscore tab
+                    fabCreatePost.hide();
+                    fabCreateReward.hide();
                 }
             }
 
             @Override
             public void onPageScrollStateChanged(int state) { }
         });
+    }
+
+    public void setDefaultTab(){
+        mViewPager.setCurrentItem(1,false); //default tab is board tab
+
+        //since default tab is board tab, we want to hide reward fab and only display board fab.
+        if(mViewPager.getCurrentItem() == 0){ //if current tab is the reward tab
+            fabCreatePost.hide();
+            fabCreateReward.show();
+        }
+
+        if(mViewPager.getCurrentItem() == 1){ //if current tab is the board tab
+            fabCreatePost.show();
+            fabCreateReward.hide();
+        }
+
+        if(mViewPager.getCurrentItem() == 2){ //if current tab is the highscore tab
+            fabCreatePost.hide();
+            fabCreateReward.hide();
+        }
+    }
+
+
+    public void sendUserToLoginActivity(){
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+    }
+
+    public void btnCreatePostOnClick(View view) {
+        Intent intent = new Intent(this, CreatePostActivity.class);
+        startActivity(intent);
+    }
+
+    public void btnCreateRewardOnClick(View view) {
+        Intent intent = new Intent(this, CreateRewardActivity.class);
+        startActivity(intent);
     }
 
     @Override
@@ -124,11 +200,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    public void btnCreatePostOnClick(View view) {
-        Intent intent = new Intent(this, CreatePostActivity.class);
-        startActivity(intent);
     }
 
     /**

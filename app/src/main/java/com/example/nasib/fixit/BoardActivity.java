@@ -27,68 +27,66 @@ import java.util.Collections;
 import java.util.List;
 
 public class BoardActivity extends Fragment{
-    ListView simpleList;
+    ListView boardList;
 
-    List<String> descriptionListt;
-    List<Integer> upvoteListt;
-    List<String> locationListt;
-    List<String> statusListt;
-    List<String> imageListt;
-    List<String> authorListt;
+    List<String> descriptionList;
+    List<Integer> upvoteList;
+    List<String> locationList;
+    List<String> statusList;
+    List<String> imageList;
+    List<String> authorList;
 
     private DatabaseReference database;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         View rootView = inflater.inflate(R.layout.fragment_board, container, false);
-
         return rootView;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        descriptionListt = new ArrayList<>();
-        upvoteListt = new ArrayList<>();
-        locationListt = new ArrayList<>();
-        statusListt = new ArrayList<>();
-        imageListt = new ArrayList<>();
-        authorListt = new ArrayList<>();
+        descriptionList = new ArrayList<>();
+        upvoteList = new ArrayList<>();
+        locationList = new ArrayList<>();
+        statusList = new ArrayList<>();
+        imageList = new ArrayList<>();
+        authorList = new ArrayList<>();
         database = FirebaseDatabase.getInstance().getReference();
 
-        simpleList = (ListView) view.findViewById(R.id.boardListView); //creates a simple list with the layout of fragment_board.xml
+        boardList = (ListView) view.findViewById(R.id.boardListView); //creates a simple list with the layout of fragment_board.xml
 
         database.child("posts").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                descriptionListt.clear();
-                upvoteListt.clear();
-                locationListt.clear();
-                statusListt.clear();
-                imageListt.clear();
-                authorListt.clear();
+                descriptionList.clear();
+                upvoteList.clear();
+                locationList.clear();
+                statusList.clear();
+                imageList.clear();
+                authorList.clear();
 
                 for(DataSnapshot post : dataSnapshot.getChildren()){
-                    descriptionListt.add(post.child("description").getValue().toString());
-                    upvoteListt.add(Integer.parseInt(post.child("upvotes").getValue().toString()));
-                    locationListt.add(post.child("location").child("provider").getValue().toString());
-                    statusListt.add(post.child("status").getValue().toString());
-                    imageListt.add(post.child("image").getValue().toString());
-                    authorListt.add(post.child("author").getValue().toString());
+                    descriptionList.add(post.child("description").getValue().toString());
+                    upvoteList.add(Integer.parseInt(post.child("upvotes").getValue().toString()));
+                    locationList.add(post.child("location").child("provider").getValue().toString());
+                    statusList.add(post.child("status").getValue().toString());
+                    imageList.add(post.child("image").getValue().toString());
+                    authorList.add(post.child("author").getValue().toString());
                 }
 
                 //reverse list in order to display newest post at the top
-                Collections.reverse(descriptionListt);
-                Collections.reverse(upvoteListt);
-                Collections.reverse(locationListt);
-                Collections.reverse(statusListt);
-                Collections.reverse(imageListt);
-                Collections.reverse(authorListt);
+                Collections.reverse(descriptionList);
+                Collections.reverse(upvoteList);
+                Collections.reverse(locationList);
+                Collections.reverse(statusList);
+                Collections.reverse(imageList);
+                Collections.reverse(authorList);
 
                 if(getActivity() != null && getContext() != null){
-                    BoardCustomAdapter customAdapter = new BoardCustomAdapter(getActivity(), descriptionListt, upvoteListt, locationListt, statusListt, imageListt, authorListt);
-                    simpleList.setAdapter(customAdapter);
+                    BoardCustomAdapter customAdapter = new BoardCustomAdapter(getActivity(), descriptionList, upvoteList, locationList, statusList, imageList, authorList);
+                    boardList.setAdapter(customAdapter);
                 }
             }
 

@@ -21,4 +21,15 @@
     <string name="create_post_screen_title">Create new issue post</string>
     <string name="create_post_successful">Post successfully created.</string>
     <string name="create_post_failed_too_shortlong">Description must be between 10 and 200 characters.</string>
+    <string name="create_reward_name">Reward:</string>
+    <string name="create_reward_name_hint">Name the reward...</string>
+    <string name="create_reward_price">Price:</string>
+    <string name="create_reward_price_hint">Price the reward...</string>
+    <string name="create_reward_image">Upload image</string>
+    <string name="create_reward_submit">Submit reward</string>
+    <string name="create_reward_Cancel">Cancel</string>
+    <string name="create_reward_screen_title">Create new reward</string>
+    <string name="create_reward_successful">Reward successfully created.</string>
+    <string name="create_reward_price_not_integer">Price must be a number between 1 and 99999</string>
+    <string name="create_reward_failed_too_shortlong">Name must be between 4 and 100 characters.</string>
 </resources>
