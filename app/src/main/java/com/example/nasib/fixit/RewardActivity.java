@@ -66,7 +66,6 @@ public class RewardActivity extends Fragment {
                 Collections.reverse(imageList);
 
                 if(getActivity() != null && getContext() != null){
-                    System.out.println("okay2");
                     RewardCustomAdapter rewardCustomAdapter = new RewardCustomAdapter(getActivity(), nameList, priceList, imageList);
                     rewardList.setAdapter(rewardCustomAdapter);
                 }

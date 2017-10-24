@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.view.Window;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.nasib.fixit.Entities.Post;
@@ -30,6 +31,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -77,26 +80,28 @@ public class MainActivity extends AppCompatActivity {
         fabCreatePost = (FloatingActionButton) findViewById(R.id.fabCreatePost);
         fabCreateReward = (FloatingActionButton) findViewById(R.id.fabCreateReward);
 
-        //Check if user is already registered, by checking the shared preferences file
+        //Check if user is already registered, by checking the shared preferences file. If not then send to login page.
         if(!prefs.contains("username")){
             sendUserToLoginActivity();
         }
-
-        //Check if username exists database.
-        mDatabase.child("users").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if(!dataSnapshot.hasChild(prefs.getString("username", null))){ //if username does not exist in database...
-                    editor.remove(prefs.getString("username", null)).commit(); //...remove from shared preference & send back to login page.
-                    sendUserToLoginActivity();
+        else //else check if username exists database. If not, remove from shared preference & send back to login page.
+        {
+            mDatabase.child("users").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if(!dataSnapshot.hasChild(prefs.getString("username", null))){
+                        editor.remove(prefs.getString("username", null)).commit();
+                        sendUserToLoginActivity();
+                    }
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
+                }
+            });
+
+        }
 
         //Set the current tab.
         setDefaultTab();
@@ -164,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     public void sendUserToLoginActivity(){
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
@@ -173,6 +177,35 @@ public class MainActivity extends AppCompatActivity {
     public void btnCreatePostOnClick(View view) {
         Intent intent = new Intent(this, CreatePostActivity.class);
         startActivity(intent);
+    }
+
+    public void btnUpvotePostOnClick(final View view) {
+        final int currentButtonPos = (int) view.getTag(); //we get button position from the listview, since every post in listview has a button.
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.getChildrenCount() > 0){ //if there are any posts
+                    int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, because posts are already inversed as they need to be displayed from top to bottom.
+                    for(DataSnapshot posts : dataSnapshot.getChildren()){ //get all posts
+                        if(i == currentButtonPos){ //since we want to add values to a CERTAIN post, we get the post index from the for-loop, and if that post index is the same as the button index then add upvote
+                            if(!dataSnapshot.child(posts.getKey()).child("upvotes").hasChild(prefs.getString("username", null))){ //if user has not upvoted the post yet, allow upvote
+                                mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
+                            }
+                            else //else if user has upvoted already yet, remove upvote
+                            {
+                                mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).removeValue();
+                            }
+                        }
+                        i--;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void btnCreateRewardOnClick(View view) {

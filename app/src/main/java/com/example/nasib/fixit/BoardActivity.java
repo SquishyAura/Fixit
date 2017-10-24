@@ -27,10 +27,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class BoardActivity extends Fragment{
-    ListView boardList;
+    ListView boardList; //making the listview static so that main activity can use this
 
     List<String> descriptionList;
-    List<Integer> upvoteList;
+    List<String> upvoteList;
     List<String> locationList;
     List<String> statusList;
     List<String> imageList;
@@ -69,7 +69,7 @@ public class BoardActivity extends Fragment{
 
                 for(DataSnapshot post : dataSnapshot.getChildren()){
                     descriptionList.add(post.child("description").getValue().toString());
-                    upvoteList.add(Integer.parseInt(post.child("upvotes").getValue().toString()));
+                    upvoteList.add(post.child("upvotes").getChildrenCount() + "");
                     locationList.add(post.child("location").child("provider").getValue().toString());
                     statusList.add(post.child("status").getValue().toString());
                     imageList.add(post.child("image").getValue().toString());
@@ -83,6 +83,7 @@ public class BoardActivity extends Fragment{
                 Collections.reverse(statusList);
                 Collections.reverse(imageList);
                 Collections.reverse(authorList);
+
 
                 if(getActivity() != null && getContext() != null){
                     BoardCustomAdapter customAdapter = new BoardCustomAdapter(getActivity(), descriptionList, upvoteList, locationList, statusList, imageList, authorList);

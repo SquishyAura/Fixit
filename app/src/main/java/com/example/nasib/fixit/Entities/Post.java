@@ -11,7 +11,7 @@ import com.google.firebase.database.IgnoreExtraProperties;
 @IgnoreExtraProperties
 public class Post {
     public String description;
-    public int upvotes;
+    public String upvotes; //upvotes is a string because we'll be storing who upvoted which post in a list, and then just display the list size as an integer, to show how many upvoted a post
     public Location location;
     public String status;
     public String image;
@@ -21,7 +21,7 @@ public class Post {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
-    public Post(String description, int upvotes, Location location, String status, String image, String author) {
+    public Post(String description, String upvotes, Location location, String status, String image, String author) {
         this.description = description;
         this.upvotes = upvotes;
         this.location = location;
