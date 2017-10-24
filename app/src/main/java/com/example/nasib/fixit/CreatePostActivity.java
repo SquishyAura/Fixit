@@ -128,11 +128,11 @@ public class CreatePostActivity extends AppCompatActivity {
         else
         {
             if(imageEncodedInBase64 != null){ //if an image is captured by the camera, that image is encoded into base64 and sent to the database.
-                post = new Post(descriptionInput.getText().toString().trim(), 0, new Location("rawr"), "Pending",  imageEncodedInBase64, prefs.getString("username", null));
+                post = new Post(descriptionInput.getText().toString().trim(), "", new Location("rawr"), "Pending",  imageEncodedInBase64, prefs.getString("username", null));
             }
             else //if no image is captured, then a premade base64 image is displayed instead, which says "NO IMAGE AVAILABLE"
             {
-                post = new Post(descriptionInput.getText().toString().trim(), 0, new Location("rawr"), "Pending", noImageFound, prefs.getString("username", null));
+                post = new Post(descriptionInput.getText().toString().trim(), "", new Location("rawr"), "Pending", noImageFound, prefs.getString("username", null));
             }
 
             //send a single event to the database, which pushes the post we just created

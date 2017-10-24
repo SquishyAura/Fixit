@@ -18,6 +18,12 @@
         android:layout_height="wrap_content"
         android:textColor="#000000" />
 
+    <Button
+        android:id="@+id/boardUpvoteButton"
+        android:onClick="btnUpvotePostOnClick"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
     <TextView
         android:id="@+id/boardLocation"
         android:layout_width="fill_parent"

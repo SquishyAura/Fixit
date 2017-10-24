@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -20,14 +21,14 @@ import java.util.List;
 public class BoardCustomAdapter extends BaseAdapter {
     Context context;
     List<String> descriptionList;
-    List<Integer> upvoteList;
+    List<String> upvoteList;
     List<String> statusList;
     List<String> locationList;
     List<String> imageList;
     List<String> authorList;
     LayoutInflater inflater;
 
-    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<Integer> upvoteList, List<String> locationList, List<String> statusList, List<String> imageList, List<String> authorList) {
+    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<String> locationList, List<String> statusList, List<String> imageList, List<String> authorList) {
         this.context = applicationContext;
         this.descriptionList = descriptionList;
         this.upvoteList = upvoteList;
@@ -59,10 +60,13 @@ public class BoardCustomAdapter extends BaseAdapter {
 
         TextView descriptionListTextView = (TextView) convertView.findViewById(R.id.boardDescriptionText);
         TextView upvoteListTextView = (TextView) convertView.findViewById(R.id.boardUpvoteText);
+        Button upvoteBtn = (Button) convertView.findViewById(R.id.boardUpvoteButton);
         TextView locationListTextView = (TextView) convertView.findViewById(R.id.boardLocation);
         TextView statusListTextView = (TextView) convertView.findViewById(R.id.boardStatus);
         ImageView imageView = (ImageView) convertView.findViewById(R.id.boardImage);
         TextView authorListTextView = (TextView) convertView.findViewById(R.id.boardAuthor);
+
+        upvoteBtn.setTag(position); //set position to a button in order to track which button is being pressed.
 
         if(imageList.get(position).equals("")){ //if no image has been selected in the create post activity
             imageView.setImageResource(R.mipmap.no_image_available);
@@ -75,7 +79,7 @@ public class BoardCustomAdapter extends BaseAdapter {
         }
 
         descriptionListTextView.setText(descriptionList.get(position));
-        upvoteListTextView.setText(upvoteList.get(position) + ""); // + "" in order to convert to string
+        upvoteListTextView.setText(upvoteList.get(position));
         locationListTextView.setText(locationList.get(position));
         statusListTextView.setText(statusList.get(position));
         authorListTextView.setText(authorList.get(position));
