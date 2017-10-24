@@ -190,15 +190,49 @@ public class MainActivity extends AppCompatActivity {
                         if(i == currentButtonPos){ //since we want to add values to a CERTAIN post, we get the post index from the for-loop, and if that post index is the same as the button index then add upvote
                             if(!dataSnapshot.child(posts.getKey()).child("upvotes").hasChild(prefs.getString("username", null))){ //if user has not upvoted the post yet, allow upvote
                                 mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
+                                incrementUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
                             }
                             else //else if user has upvoted already yet, remove upvote
                             {
                                 mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).removeValue();
+                                decrementUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
                             }
                         }
                         i--;
                     }
                 }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void incrementUpvote(final String postAuthor){
+        mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
+                int incrementedUpvote = currentUpvote + 1;
+                mDatabase.child("users").child(postAuthor).child("upvotes").setValue(incrementedUpvote);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void decrementUpvote(final String postAuthor){
+        mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
+                int decrementedUpvote = currentUpvote - 1;
+                mDatabase.child("users").child(postAuthor).child("upvotes").setValue(decrementedUpvote);
             }
 
             @Override
