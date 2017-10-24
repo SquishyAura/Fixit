@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.example.nasib.fixit.Entities.Post;
 import com.example.nasib.fixit.Entities.User;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -41,9 +42,11 @@ public class CreatePostActivity extends AppCompatActivity {
     EditText descriptionInput;
     String imageEncodedInBase64;
     private SharedPreferences prefs;
-    static final int REQUEST_TAKE_PHOTO = 1;
+    static final int REQUEST_OK_PHOTO = 1;
+    static final int REQUEST_OK_LOCATION = 2;
     String mCurrentPhotoPath;
     File photoFile = null;
+    Location location;
 
 
     @Override
@@ -70,14 +73,14 @@ public class CreatePostActivity extends AppCompatActivity {
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
                 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(cameraIntent, REQUEST_TAKE_PHOTO);
+                startActivityForResult(cameraIntent, REQUEST_OK_PHOTO);
             }
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_OK_PHOTO && resultCode == RESULT_OK) {
             Uri uri = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
             InputStream imageStream = null;
             try {
@@ -106,6 +109,11 @@ public class CreatePostActivity extends AppCompatActivity {
             //The bytearray is lastly encoded to a base64 string, which is used to store images as strings in the database.
             imageEncodedInBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT);
         }
+        else if(requestCode == REQUEST_OK_LOCATION && resultCode == RESULT_OK){
+            Bundle b = data.getExtras();
+            location = (Location) b.get("Location");
+
+        }
     }
 
     private File createImageFile() throws IOException {
@@ -125,15 +133,20 @@ public class CreatePostActivity extends AppCompatActivity {
             Toast errorToast = Toast.makeText(getApplicationContext(),R.string.create_post_failed_too_shortlong, Toast.LENGTH_LONG);
             errorToast.show();
         }
+        else if(location == null){ //if location hasn't been chosen
+            Toast errorToast = Toast.makeText(getApplicationContext(),R.string.create_post_location_error, Toast.LENGTH_LONG);
+            errorToast.show();
+        }
         else
         {
             if(imageEncodedInBase64 != null){ //if an image is captured by the camera, that image is encoded into base64 and sent to the database.
-                post = new Post(descriptionInput.getText().toString().trim(), "", new Location("rawr"), "Pending",  imageEncodedInBase64, prefs.getString("username", null));
+                post = new Post(descriptionInput.getText().toString().trim(), "", location, "Pending",  imageEncodedInBase64, prefs.getString("username", null));
             }
             else //if no image is captured, then a premade base64 image is displayed instead, which says "NO IMAGE AVAILABLE"
             {
-                post = new Post(descriptionInput.getText().toString().trim(), "", new Location("rawr"), "Pending", noImageFound, prefs.getString("username", null));
+                post = new Post(descriptionInput.getText().toString().trim(), "", location, "Pending", noImageFound, prefs.getString("username", null));
             }
+
 
             //send a single event to the database, which pushes the post we just created
             database.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -156,4 +169,11 @@ public class CreatePostActivity extends AppCompatActivity {
     public void btnCancelPostOnClick(View view) {
         super.finish();
     }
+
+    public void btnSetLocation(View view) {
+        Intent intent = new Intent(this, MapsActivity.class);
+        startActivityForResult(intent, REQUEST_OK_LOCATION);
+    }
+
+
 }

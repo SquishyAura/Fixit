@@ -60,7 +60,8 @@
         android:text="@string/create_post_location"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/uploadImageButtonCreatePost" />
+        app:layout_constraintTop_toBottomOf="@+id/uploadImageButtonCreatePost"
+        android:onClick="btnSetLocation"/>
 
     <Button
         android:id="@+id/fixitButtonCreatePost"

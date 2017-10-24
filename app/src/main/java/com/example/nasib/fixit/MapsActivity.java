@@ -1,5 +1,6 @@
 package com.example.nasib.fixit;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Geocoder;
 import android.location.Location;
@@ -25,7 +26,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     //LocationManager locationManager;
     //LatLng myLocation;
-    LatLng markerLocation;
+    Location markerLocation;
 
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
@@ -136,15 +137,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onMapClick(LatLng point) {
-                markerLocation = new LatLng(point.latitude, point.longitude);
-                MarkerOptions marker = new MarkerOptions().position(markerLocation).title("New Marker");
+                //markerLocation = new LatLng(point.latitude, point.longitude);
+                markerLocation.setLatitude(point.latitude);
+                markerLocation.setLongitude(point.longitude);
+                MarkerOptions marker = new MarkerOptions().position(new LatLng(point.latitude, point.longitude)).title("New Marker");
 
                 //Clear all markers
                 googleMap.clear();
                 //Add the new marker by touching
                 googleMap.addMarker(marker);
                 //.distanceTo(myLocation,markerLocation,)
-                System.out.println(point.latitude + " testy1 " + point.longitude);
+                //System.out.println(point.latitude + " testy1 " + point.longitude);
             }
         });
 
@@ -168,7 +171,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                             mMap.addMarker(new MarkerOptions().position(mLatLng).title("It's Me!"));
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mLatLng, 13f));
-                            System.out.println(location.getLatitude() + " testy2 " + location.getLongitude());
+                            //System.out.println(location.getLatitude() + " testy2 " + location.getLongitude());
+                            markerLocation = location;
+                            //markerLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
                         }
                     }
@@ -177,6 +182,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void btnMyLocationOnClick(View view) {
-        System.out.println("WORKWORKWORK");
+        Intent intent = new Intent();
+        intent.putExtra("Location", markerLocation);
+        setResult(RESULT_OK, intent);
+        finish();
+
     }
 }

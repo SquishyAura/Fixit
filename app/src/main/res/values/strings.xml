@@ -11,7 +11,7 @@
     <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="title_activity_maps">Map</string>
-    <string name="btn_mylocation">My Location</string>
+    <string name="btn_mylocation">Continue</string>
     <string name="create_post_description">Description:</string>
     <string name="create_post_description_hint">Describe an reported issue...</string>
     <string name="create_post_image">Upload image</string>
@@ -21,6 +21,7 @@
     <string name="create_post_screen_title">Create new issue post</string>
     <string name="create_post_successful">Post successfully created.</string>
     <string name="create_post_failed_too_shortlong">Description must be between 10 and 200 characters.</string>
+    <string name="create_post_location_error">Choose a location.</string>
     <string name="create_reward_name">Reward:</string>
     <string name="create_reward_name_hint">Name the reward...</string>
     <string name="create_reward_price">Price:</string>
