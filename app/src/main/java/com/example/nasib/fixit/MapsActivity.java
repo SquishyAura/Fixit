@@ -137,7 +137,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onMapClick(LatLng point) {
-                //markerLocation = new LatLng(point.latitude, point.longitude);
+                markerLocation = new Location(LocationManager.GPS_PROVIDER);
                 markerLocation.setLatitude(point.latitude);
                 markerLocation.setLongitude(point.longitude);
                 MarkerOptions marker = new MarkerOptions().position(new LatLng(point.latitude, point.longitude)).title("New Marker");
@@ -166,7 +166,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onSuccess(Location location) {
                         if (location != null) {
-
                             LatLng mLatLng = new LatLng(location.getLatitude(),location.getLongitude());
 
                             mMap.addMarker(new MarkerOptions().position(mLatLng).title("It's Me!"));

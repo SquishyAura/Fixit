@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.nasib.fixit.Entities.Post;
 import com.example.nasib.fixit.Entities.User;
@@ -80,17 +81,18 @@ public class MainActivity extends AppCompatActivity {
         fabCreatePost = (FloatingActionButton) findViewById(R.id.fabCreatePost);
         fabCreateReward = (FloatingActionButton) findViewById(R.id.fabCreateReward);
 
-        //Check if user is already registered, by checking the shared preferences file. If not then send to login page.
+        //Check if user is registered, by checking the shared preferences file. If not then send to login page.
         if(!prefs.contains("username")){
+            System.out.println("sender igennem 0");
             sendUserToLoginActivity();
         }
-        else //else check if username exists database. If not, remove from shared preference & send back to login page.
+        else //else if user is registered in shared prefs but not in the database for some reason, remove shared preference and move to login activity.
         {
-            mDatabase.child("users").addValueEventListener(new ValueEventListener() {
+            mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if(!dataSnapshot.hasChild(prefs.getString("username", null))){
-                        editor.remove(prefs.getString("username", null)).commit();
+                        editor.clear().commit();
                         sendUserToLoginActivity();
                     }
                 }
@@ -100,11 +102,30 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             });
-
         }
 
+        //Continously check database for username changes. If username gets deleted, remove from shared preference & send back to login page.
+        mDatabase.child("users").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(prefs.contains("username")){
+                    if(!dataSnapshot.hasChild(prefs.getString("username", null)) && !prefs.getString("username", null).equals(null)){ //if database doesn't contain username and shared prefs contain username (this occurs when we delete a user through the database directly)
+                        editor.clear().commit(); //remove everything in shared preferences
+                        sendUserToLoginActivity();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+
         //Set the current tab.
-        setDefaultTab();
+        setDefaultTab(1);
 
         //Listener listens when the user changes tabs. We use this in order to dynamically hide & show certain fabs.
         mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
@@ -149,8 +170,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void setDefaultTab(){
-        mViewPager.setCurrentItem(1,false); //default tab is board tab
+    public void setDefaultTab(int tabNumber){
+        mViewPager.setCurrentItem(tabNumber, false); //default tab is board tab
 
         //since default tab is board tab, we want to hide reward fab and only display board fab.
         if(mViewPager.getCurrentItem() == 0){ //if current tab is the reward tab
@@ -179,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    //upvote / remove upvote button
     public void btnUpvotePostOnClick(final View view) {
         final int currentButtonPos = (int) view.getTag(); //we get button position from the listview, since every post in listview has a button.
         mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -186,13 +208,21 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.getChildrenCount() > 0){ //if there are any posts
                     int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, because posts are already inversed as they need to be displayed from top to bottom.
+
                     for(DataSnapshot posts : dataSnapshot.getChildren()){ //get all posts
                         if(i == currentButtonPos){ //since we want to add values to a CERTAIN post, we get the post index from the for-loop, and if that post index is the same as the button index then add upvote
                             if(!dataSnapshot.child(posts.getKey()).child("upvotes").hasChild(prefs.getString("username", null))){ //if user has not upvoted the post yet, allow upvote
-                                mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
-                                incrementUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
+                                if(!dataSnapshot.child(posts.getKey()).child("author").getValue().toString().equals(prefs.getString("username", null))){ //you cannot like your own post!
+                                    mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
+                                    incrementUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
+                                }
+                                else
+                                {
+                                    Toast errorToast = Toast.makeText(getApplicationContext(),R.string.upvote_own_post_not_allowed, Toast.LENGTH_SHORT);
+                                    errorToast.show();
+                                }
                             }
-                            else //else if user has upvoted already yet, remove upvote
+                            else //else if user has upvoted already, remove upvote
                             {
                                 mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).removeValue();
                                 decrementUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
@@ -214,9 +244,11 @@ public class MainActivity extends AppCompatActivity {
         mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
-                int incrementedUpvote = currentUpvote + 1;
-                mDatabase.child("users").child(postAuthor).child("upvotes").setValue(incrementedUpvote);
+                if(dataSnapshot.hasChild(postAuthor)){ //if post author exists in the database
+                    int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
+                    int incrementedUpvote = currentUpvote + 1;
+                    mDatabase.child("users").child(postAuthor).child("upvotes").setValue(incrementedUpvote);
+                }
             }
 
             @Override
@@ -230,9 +262,11 @@ public class MainActivity extends AppCompatActivity {
         mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
-                int decrementedUpvote = currentUpvote - 1;
-                mDatabase.child("users").child(postAuthor).child("upvotes").setValue(decrementedUpvote);
+                if(dataSnapshot.hasChild(postAuthor)) { //if post author exists in the database
+                    int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
+                    int decrementedUpvote = currentUpvote - 1;
+                    mDatabase.child("users").child(postAuthor).child("upvotes").setValue(decrementedUpvote);
+                }
             }
 
             @Override

@@ -33,4 +33,5 @@
     <string name="create_reward_successful">Reward successfully created.</string>
     <string name="create_reward_price_not_integer">Price must be a number between 1 and 99999</string>
     <string name="create_reward_failed_too_shortlong">Name must be between 4 and 100 characters.</string>
+    <string name="upvote_own_post_not_allowed">You cannot like your own post.</string>
 </resources>

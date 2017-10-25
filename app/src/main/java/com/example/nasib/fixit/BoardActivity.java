@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class BoardActivity extends Fragment{
-    ListView boardList; //making the listview static so that main activity can use this
+    ListView boardList;
 
     List<String> descriptionList;
     List<String> upvoteList;
