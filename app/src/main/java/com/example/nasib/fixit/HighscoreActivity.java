@@ -11,14 +11,67 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class HighscoreActivity extends Fragment {
+    ListView highscoreList;
+
+    List<String> nameList;
+    List<Integer> scoreList;
+
+    private DatabaseReference database;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_board, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_highscore, container, false);
         return rootView;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        nameList = new ArrayList<>();
+        scoreList = new ArrayList<>();
+        database = FirebaseDatabase.getInstance().getReference();
+
+        highscoreList = (ListView) view.findViewById(R.id.highscoreListView); //creates a simple list with the layout of fragment_highscore.xml
+
+        database.child("users").orderByChild("upvotes").limitToLast(10).addValueEventListener(new ValueEventListener() { //takes top 20 upvotes
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                nameList.clear();
+                scoreList.clear();
+
+                for(DataSnapshot users : dataSnapshot.getChildren()){
+                    nameList.add(users.child("username").getValue().toString());
+                    scoreList.add(Integer.parseInt(users.child("upvotes").getValue().toString()));
+                }
+
+                Collections.reverse(nameList);
+                Collections.reverse(scoreList);
+
+                if(getActivity() != null && getContext() != null){
+                    HighscoreCustomAdapter customAdapter = new HighscoreCustomAdapter(getActivity(), nameList, scoreList);
+                    highscoreList.setAdapter(customAdapter);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 }
