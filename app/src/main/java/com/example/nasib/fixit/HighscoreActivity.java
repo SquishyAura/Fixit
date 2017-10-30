@@ -25,6 +25,7 @@ import java.util.List;
 
 public class HighscoreActivity extends Fragment {
     ListView highscoreList;
+    HighscoreCustomAdapter customAdapter;
 
     List<String> nameList;
     List<Integer> scoreList;
@@ -61,9 +62,13 @@ public class HighscoreActivity extends Fragment {
                 Collections.reverse(nameList);
                 Collections.reverse(scoreList);
 
-                if(getActivity() != null && getContext() != null){
-                    HighscoreCustomAdapter customAdapter = new HighscoreCustomAdapter(getActivity(), nameList, scoreList);
+                customAdapter = new HighscoreCustomAdapter(getActivity(), nameList, scoreList);
+
+                if(highscoreList.getAdapter() == null){
                     highscoreList.setAdapter(customAdapter);
+                }
+                else {
+                    ((HighscoreCustomAdapter)highscoreList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when database is updated
                 }
             }
 

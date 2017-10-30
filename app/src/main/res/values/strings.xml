@@ -34,4 +34,7 @@
     <string name="create_reward_price_not_integer">Price must be a number between 1 and 99999</string>
     <string name="create_reward_failed_too_shortlong">Name must be between 4 and 100 characters.</string>
     <string name="upvote_own_post_not_allowed">You cannot like your own post.</string>
+    <string name="title_activity_navigation">Map</string>
+    <string name="navigation_btn_goback">Go back</string>
+    <string name="navigation_wait">Loading location takes some seconds.</string>
 </resources>

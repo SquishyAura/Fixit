@@ -91,30 +91,11 @@ public class MainActivity extends AppCompatActivity {
         fabCreatePost = (FloatingActionButton) findViewById(R.id.fabCreatePost);
         fabCreateReward = (FloatingActionButton) findViewById(R.id.fabCreateReward);
 
+        //Set the current tab.
+        setDefaultTab(1);
+
         //For last known location
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-
-        mFusedLocationProviderClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        if (location != null) {
-                            lastKnownLocation = location;
-                            System.out.println("LAST KNOWN LOCATION "+lastKnownLocation);
-                        }
-                    }
-                });
 
         //Check if user is registered, by checking the shared preferences file. If not then send to login page.
         if(!prefs.contains("username")){
@@ -157,11 +138,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-        //Set the current tab.
-        setDefaultTab(1);
-
         //Listener listens when the user changes tabs. We use this in order to dynamically hide & show certain fabs.
         mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
@@ -203,6 +179,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageScrollStateChanged(int state) { }
         });
+
+        //LOCATION
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        mFusedLocationProviderClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        if (location != null) {
+                            lastKnownLocation = location;
+                            System.out.println("LAST KNOWN LOCATION "+lastKnownLocation);
+                        }
+                    }
+                });
     }
 
     public void setDefaultTab(int tabNumber){

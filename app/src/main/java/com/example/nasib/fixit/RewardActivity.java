@@ -25,6 +25,7 @@ import java.util.List;
 
 public class RewardActivity extends Fragment {
     ListView rewardList;
+    RewardCustomAdapter rewardCustomAdapter;
 
     List<String> nameList;
     List<Integer> priceList;
@@ -65,9 +66,13 @@ public class RewardActivity extends Fragment {
                 Collections.reverse(priceList);
                 Collections.reverse(imageList);
 
-                if(getActivity() != null && getContext() != null){
-                    RewardCustomAdapter rewardCustomAdapter = new RewardCustomAdapter(getActivity(), nameList, priceList, imageList);
+                rewardCustomAdapter = new RewardCustomAdapter(getActivity(), nameList, priceList, imageList);
+
+                if(rewardList.getAdapter() == null) {
                     rewardList.setAdapter(rewardCustomAdapter);
+                }
+                else {
+                    ((RewardCustomAdapter)rewardList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when database is updated
                 }
             }
 

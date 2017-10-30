@@ -3,6 +3,7 @@ package com.example.nasib.fixit;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,12 +24,12 @@ public class BoardCustomAdapter extends BaseAdapter {
     List<String> descriptionList;
     List<String> upvoteList;
     List<String> statusList;
-    List<String> locationList;
+    List<Location> locationList;
     List<String> imageList;
     List<String> authorList;
     LayoutInflater inflater;
 
-    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<String> locationList, List<String> statusList, List<String> imageList, List<String> authorList) {
+    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<Location> locationList, List<String> statusList, List<String> imageList, List<String> authorList) {
         this.context = applicationContext;
         this.descriptionList = descriptionList;
         this.upvoteList = upvoteList;
@@ -38,6 +39,8 @@ public class BoardCustomAdapter extends BaseAdapter {
         this.authorList = authorList;
         inflater = (LayoutInflater.from(applicationContext));
     }
+
+    public Location getLocation(int position) { return locationList.get(position); }
 
     @Override
     public int getCount() {
@@ -61,7 +64,6 @@ public class BoardCustomAdapter extends BaseAdapter {
         TextView descriptionListTextView = (TextView) convertView.findViewById(R.id.boardDescriptionText);
         TextView upvoteListTextView = (TextView) convertView.findViewById(R.id.boardUpvoteText);
         Button upvoteBtn = (Button) convertView.findViewById(R.id.boardUpvoteButton);
-        TextView locationListTextView = (TextView) convertView.findViewById(R.id.boardLocation);
         TextView statusListTextView = (TextView) convertView.findViewById(R.id.boardStatus);
         ImageView imageView = (ImageView) convertView.findViewById(R.id.boardImage);
         TextView authorListTextView = (TextView) convertView.findViewById(R.id.boardAuthor);
@@ -79,11 +81,10 @@ public class BoardCustomAdapter extends BaseAdapter {
         }
 
         descriptionListTextView.setText(descriptionList.get(position));
-        upvoteListTextView.setText(upvoteList.get(position));
-        locationListTextView.setText(locationList.get(position));
-        statusListTextView.setText(statusList.get(position));
-        authorListTextView.setText(authorList.get(position));
+        upvoteListTextView.setText("Upvotes: " + upvoteList.get(position));
+        statusListTextView.setText("Status: " + statusList.get(position));
+        authorListTextView.setText("Author: " + authorList.get(position));
 
-        return convertView; //returns a row with all the textviews & images above
+        return convertView; //returns a row with all the textviews, images, and buttons above
     }
 }
