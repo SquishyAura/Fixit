@@ -4,7 +4,7 @@ package com.example.nasib.fixit;
  * Created by nasib on 28-09-2017.
  */
 
-import android.location.Location;
+
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;

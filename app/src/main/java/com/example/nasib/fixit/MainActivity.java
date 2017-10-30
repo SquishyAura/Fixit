@@ -2,10 +2,12 @@ package com.example.nasib.fixit;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -27,6 +29,9 @@ import android.widget.Toast;
 
 import com.example.nasib.fixit.Entities.Post;
 import com.example.nasib.fixit.Entities.User;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -57,6 +62,11 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton fabCreatePost;
     FloatingActionButton fabCreateReward;
 
+    //Last known location
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private Location lastKnownLocation;
+    private int distanceInMeters;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,11 +85,36 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        prefs = getSharedPreferences("Fixit_Preferences",MODE_PRIVATE);
+        prefs = getSharedPreferences("Fixit_Preferences", MODE_PRIVATE);
         editor = prefs.edit();
         mDatabase = FirebaseDatabase.getInstance().getReference();
         fabCreatePost = (FloatingActionButton) findViewById(R.id.fabCreatePost);
         fabCreateReward = (FloatingActionButton) findViewById(R.id.fabCreateReward);
+
+        //For last known location
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        mFusedLocationProviderClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        if (location != null) {
+                            lastKnownLocation = location;
+                            System.out.println("LAST KNOWN LOCATION "+lastKnownLocation);
+                        }
+                    }
+                });
 
         //Check if user is registered, by checking the shared preferences file. If not then send to login page.
         if(!prefs.contains("username")){

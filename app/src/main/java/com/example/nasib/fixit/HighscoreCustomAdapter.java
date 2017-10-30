@@ -48,7 +48,7 @@ public class HighscoreCustomAdapter extends BaseAdapter {
         TextView nameListTextView = (TextView) convertView.findViewById(R.id.highscoreNameText);
         TextView scoreListTextView = (TextView) convertView.findViewById(R.id.highscoreScoreText);
 
-        nameListTextView.setText("#" + position + " - " + nameList.get(position));
+        nameListTextView.setText("#" + position + 1 + " - " + nameList.get(position));
         scoreListTextView.setText(scoreList.get(position) + " upvotes");
 
         return convertView;
