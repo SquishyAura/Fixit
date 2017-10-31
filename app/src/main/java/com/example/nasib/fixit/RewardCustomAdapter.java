@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -54,6 +55,7 @@ public class RewardCustomAdapter extends BaseAdapter {
         TextView nameListTextView = (TextView) convertView.findViewById(R.id.rewardNameText);
         TextView priceListTextView = (TextView) convertView.findViewById(R.id.rewardPriceText);
         ImageView imageView = (ImageView) convertView.findViewById(R.id.rewardImage);
+        Button buyBtn = (Button) convertView.findViewById(R.id.rewardBuyButton);
 
         nameListTextView.setText(nameList.get(position));
         priceListTextView.setText(priceList.get(position) + ""); // + "" in order to convert to string
@@ -61,6 +63,8 @@ public class RewardCustomAdapter extends BaseAdapter {
         byte[] decodedString = Base64.decode(imageList.get(position), Base64.DEFAULT);
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         imageView.setImageBitmap(decodedByte);
+
+        buyBtn.setTag(position);
 
         return convertView;
     }

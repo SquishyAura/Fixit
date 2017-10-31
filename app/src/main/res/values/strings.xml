@@ -37,4 +37,7 @@
     <string name="title_activity_navigation">Map</string>
     <string name="navigation_btn_goback">Go back</string>
     <string name="navigation_wait">Loading location takes some seconds.</string>
+    <string name="reward_buy_cooldown">You are on a cooldown. You can buy this item at %1$s</string>
+    <string name="reward_buy_not_enough_points">You don\'t have enough points.</string>
+    <string name="reward_buy_successful">Thanks for your purchase! You have %1$s points left.</string>
 </resources>

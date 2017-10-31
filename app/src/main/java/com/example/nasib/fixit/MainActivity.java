@@ -43,6 +43,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity {
@@ -74,6 +77,10 @@ public class MainActivity extends AppCompatActivity {
 
     //Permission
     private static final int REQUEST_LOCATION = 2;
+
+    //Post thresholds
+    private static final int POST_APPROVAL_THRESHOLD = 5;
+    private static final int REWARD_COOLDOWN_DURATION_DAYS = 7;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -224,29 +231,42 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    //upvote / remove upvote button
-    public void btnUpvotePostOnClick(final View view) {
+    public void btnCreateRewardOnClick(View view) {
+        Intent intent = new Intent(this, CreateRewardActivity.class);
+        startActivity(intent);
+    }
+
+    public void btnBuyRewardOnClick(View view) {
         final int currentButtonPos = (int) view.getTag(); //we get button position from the listview, since every post in listview has a button.
-        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+
+        mDatabase.child("rewards").addListenerForSingleValueEvent(new ValueEventListener() {
+
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.getChildrenCount() > 0) { //if there are any posts
-                    int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, because posts are already inversed as they need to be displayed from top to bottom.
+                if (dataSnapshot.getChildrenCount() > 0) { //if there are any rewards
+                    int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, because rewards are already inversed as they need to be displayed from top to bottom.
+                    Calendar c = Calendar.getInstance();
+                    Date dt = new Date(); //get current date
+                    c.setTime(dt);
+                    c.add(Calendar.DATE, REWARD_COOLDOWN_DURATION_DAYS); //add 7 days to date, in order to make cooldown last 7 days
+                    dt = c.getTime();
+                    String futureTimeStamp = new SimpleDateFormat("dd/MM-yyyy HH:mm:ss").format(dt);
+                    String currentTimeStamp = new SimpleDateFormat("dd/MM-yyyy HH:mm:ss").format(Calendar.getInstance().getTime());
 
-                    for (DataSnapshot posts : dataSnapshot.getChildren()) { //get all posts
-                        if (i == currentButtonPos) { //since we want to add values to a CERTAIN post, we get the post index from the for-loop, and if that post index is the same as the button index then add upvote
-                            if (!dataSnapshot.child(posts.getKey()).child("upvotes").hasChild(prefs.getString("username", null))) { //if user has not upvoted the post yet, allow upvote
-                                if (!dataSnapshot.child(posts.getKey()).child("author").getValue().toString().equals(prefs.getString("username", null))) { //you cannot like your own post!
-                                    mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
-                                    incrementUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
-                                } else {
-                                    Toast errorToast = Toast.makeText(getApplicationContext(), R.string.upvote_own_post_not_allowed, Toast.LENGTH_SHORT);
-                                    errorToast.show();
+                    for (DataSnapshot rewards : dataSnapshot.getChildren()) { //get all rewards
+                        if (i == currentButtonPos) { //since we want to add values to a CERTAIN reward, we get the reward index from the for-loop, and if that reward index is the same as the button index then buy reward
+                            if(dataSnapshot.child(rewards.getKey()).child("cooldown").hasChild(prefs.getString("username", null))){ //if user has cooldown
+                                if(dataSnapshot.child(rewards.getKey()).child("cooldown").child(prefs.getString("username", null)).getValue().toString().compareTo(currentTimeStamp) >= 0){ //if user is not on buy cooldown for the certain reward
+                                    deductUserPoint(prefs.getString("username", null), rewards.getKey(), Integer.valueOf(dataSnapshot.child(rewards.getKey()).child("price").getValue().toString()), futureTimeStamp);
                                 }
-                            } else //else if user has upvoted already, remove upvote
+                                else{
+                                    String cooldownStr = getString(R.string.reward_buy_cooldown, futureTimeStamp);
+                                    Toast.makeText(getApplicationContext(), cooldownStr, Toast.LENGTH_LONG).show();
+                                }
+                            }
+                            else
                             {
-                                mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).removeValue();
-                                decrementUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
+                                deductUserPoint(prefs.getString("username", null), rewards.getKey(), Integer.valueOf(dataSnapshot.child(rewards.getKey()).child("price").getValue().toString()), futureTimeStamp);
                             }
                         }
                         i--;
@@ -261,13 +281,74 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void incrementUpvote(final String postAuthor) {
+    //upvote / remove upvote button
+    public void btnUpvotePostOnClick(final View view) {
+        final int currentButtonPos = (int) view.getTag(); //we get button position from the listview, since every post in listview has a button.
+
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getChildrenCount() > 0) { //if there are any posts
+                    int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, because posts are already inversed as they need to be displayed from top to bottom.
+
+                    for (DataSnapshot posts : dataSnapshot.getChildren()) { //get all posts
+                        if (i == currentButtonPos) { //since we want to add values to a CERTAIN post, we get the post index from the for-loop, and if that post index is the same as the button index then add upvote
+                            if (!dataSnapshot.child(posts.getKey()).child("upvotes").hasChild(prefs.getString("username", null))) { //if user has not upvoted the post yet, allow upvote
+                                if (!dataSnapshot.child(posts.getKey()).child("author").getValue().toString().equals(prefs.getString("username", null))) { //you cannot like your own post!
+                                    incrementPostUpovote(posts.getKey());
+                                    incrementUserUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString(), posts.getKey(), dataSnapshot.child(posts.getKey()).child("status").getValue().toString());
+                                } else {
+                                    Toast errorToast = Toast.makeText(getApplicationContext(), R.string.upvote_own_post_not_allowed, Toast.LENGTH_SHORT);
+                                    errorToast.show();
+                                }
+                            } else //else if user has upvoted already, remove upvote
+                            {
+                                decrementPostUpvote(posts.getKey());
+                                decrementUserUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
+                            }
+                        }
+                        i--;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void incrementPostUpovote(final String postKey){
+        mDatabase.child("posts").child(postKey).child("upvotes").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
+
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.child(postKey).child("upvotes").getChildrenCount() >= POST_APPROVAL_THRESHOLD && //if post has at least 5 upvotes
+                   !dataSnapshot.child(postKey).child("status").getValue().toString().equals("Approved")){  //and if post hasn't been approved yet
+                    incrementUserPoint(dataSnapshot.child(postKey).child("author").getValue().toString()); //increment point of post's author
+                    approvePost(postKey);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void decrementPostUpvote(final String postKey){
+        mDatabase.child("posts").child(postKey).child("upvotes").child(prefs.getString("username", null)).removeValue();
+    }
+
+    public void incrementUserUpvote(final String postAuthor, final String postKey, final String postStatus) {
         mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.hasChild(postAuthor)) { //if post author exists in the database
-                    int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
-                    int incrementedUpvote = currentUpvote + 1;
+                    int incrementedUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString()) + 1;
                     mDatabase.child("users").child(postAuthor).child("upvotes").setValue(incrementedUpvote);
                 }
             }
@@ -279,13 +360,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void decrementUpvote(final String postAuthor) {
+    public void decrementUserUpvote(final String postAuthor) {
         mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.hasChild(postAuthor)) { //if post author exists in the database
-                    int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
-                    int decrementedUpvote = currentUpvote - 1;
+                    int decrementedUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString()) - 1;
                     mDatabase.child("users").child(postAuthor).child("upvotes").setValue(decrementedUpvote);
                 }
             }
@@ -297,9 +377,54 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void btnCreateRewardOnClick(View view) {
-        Intent intent = new Intent(this, CreateRewardActivity.class);
-        startActivity(intent);
+    public void incrementUserPoint(final String postAuthor){
+        mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChild(postAuthor)) { //if post author exists in the database
+                    int incrementedPoint = Integer.valueOf(dataSnapshot.child(postAuthor).child("points").getValue().toString()) + 1;
+                    mDatabase.child("users").child(postAuthor).child("points").setValue(incrementedPoint);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void deductUserPoint(final String username, final String rewardKey, final int rewardPrice, final String timeStamp){
+        mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChild(username)) { //if post author exists in the database
+                    if(Integer.valueOf(dataSnapshot.child(username).child("points").getValue().toString()) >= rewardPrice){ //if user has enough points to buy reward
+                        mDatabase.child("rewards").child(rewardKey).child("cooldown").child(prefs.getString("username", null)).setValue(timeStamp);
+
+                        int remainingPoints = Integer.valueOf(dataSnapshot.child(username).child("points").getValue().toString()) - rewardPrice;
+                        mDatabase.child("users").child(username).child("points").setValue(remainingPoints);
+
+                        String successStr = getString(R.string.reward_buy_successful, String.valueOf(remainingPoints));
+                        Toast.makeText(getApplicationContext(), successStr, Toast.LENGTH_LONG).show();
+                    }
+                    else
+                    {
+                        Toast.makeText(getApplicationContext(), R.string.reward_buy_not_enough_points, Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void approvePost(final String postKey){
+        mDatabase.child("posts").child(postKey).child("status").setValue("Approved"); //approve post
     }
 
     @Override

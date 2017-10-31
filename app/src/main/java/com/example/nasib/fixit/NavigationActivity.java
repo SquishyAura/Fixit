@@ -64,7 +64,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
                     double latitude = location.getLatitude();
                     double longtitude = location.getLongitude();
                     myLocation = new LatLng(latitude, longtitude);
-                    mMap.addMarker(new MarkerOptions().position(myLocation).title("It's Me!"));
+                    mMap.addMarker(new MarkerOptions().position(myLocation).title("My current position"));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 13f));
 
 
@@ -101,7 +101,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
                     double latitude = location.getLatitude();
                     double longtitude = location.getLongitude();
                     myLocation = new LatLng(latitude, longtitude);
-                    mMap.addMarker(new MarkerOptions().position(myLocation).title("It's Me!"));
+                    mMap.addMarker(new MarkerOptions().position(myLocation).title("My current position"));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 13f));
 
                     //GET DESTINATION
