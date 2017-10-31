@@ -1,13 +1,17 @@
 package com.example.nasib.fixit;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -16,6 +20,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -67,6 +72,9 @@ public class MainActivity extends AppCompatActivity {
     private Location lastKnownLocation;
     private int distanceInMeters;
 
+    //Permission
+    private static final int REQUEST_LOCATION = 2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,17 +105,19 @@ public class MainActivity extends AppCompatActivity {
         //For last known location
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
+        //PERMISSIONS FOR LOCATION & STORAGE
+        requestPermissions();
+
         //Check if user is registered, by checking the shared preferences file. If not then send to login page.
-        if(!prefs.contains("username")){
+        if (!prefs.contains("username")) {
             System.out.println("sender igennem 0");
             sendUserToLoginActivity();
-        }
-        else //else if user is registered in shared prefs but not in the database for some reason, remove shared preference and move to login activity.
+        } else //else if user is registered in shared prefs but not in the database for some reason, remove shared preference and move to login activity.
         {
             mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    if(!dataSnapshot.hasChild(prefs.getString("username", null))){
+                    if (!dataSnapshot.hasChild(prefs.getString("username", null))) {
                         editor.clear().commit();
                         sendUserToLoginActivity();
                     }
@@ -124,8 +134,8 @@ public class MainActivity extends AppCompatActivity {
         mDatabase.child("users").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(prefs.contains("username")){
-                    if(!dataSnapshot.hasChild(prefs.getString("username", null)) && !prefs.getString("username", null).equals(null)){ //if database doesn't contain username and shared prefs contain username (this occurs when we delete a user through the database directly)
+                if (prefs.contains("username")) {
+                    if (!dataSnapshot.hasChild(prefs.getString("username", null)) && !prefs.getString("username", null).equals(null)) { //if database doesn't contain username and shared prefs contain username (this occurs when we delete a user through the database directly)
                         editor.clear().commit(); //remove everything in shared preferences
                         sendUserToLoginActivity();
                     }
@@ -141,17 +151,18 @@ public class MainActivity extends AppCompatActivity {
         //Listener listens when the user changes tabs. We use this in order to dynamically hide & show certain fabs.
         mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
 
             @Override
             public void onPageSelected(int position) {
-                if(mViewPager.getCurrentItem() == 0){ //if current tab is the reward tab
+                if (mViewPager.getCurrentItem() == 0) { //if current tab is the reward tab
                     mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
 
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            for(DataSnapshot user : dataSnapshot.getChildren()){ //if current user is an admin, they can create a reward
-                                if(Boolean.valueOf(user.child("admin").getValue().toString()) == true){
+                            for (DataSnapshot user : dataSnapshot.getChildren()) { //if current user is an admin, they can create a reward
+                                if (Boolean.valueOf(user.child("admin").getValue().toString()) == true) {
                                     fabCreateReward.show();
                                 }
                             }
@@ -165,66 +176,45 @@ public class MainActivity extends AppCompatActivity {
                     fabCreatePost.hide();
                 }
 
-                if(mViewPager.getCurrentItem() == 1){ //if current tab is the board tab
+                if (mViewPager.getCurrentItem() == 1) { //if current tab is the board tab
                     fabCreatePost.show();
                     fabCreateReward.hide();
                 }
 
-                if(mViewPager.getCurrentItem() == 2){ //if current tab is the highscore tab
+                if (mViewPager.getCurrentItem() == 2) { //if current tab is the highscore tab
                     fabCreatePost.hide();
                     fabCreateReward.hide();
                 }
             }
 
             @Override
-            public void onPageScrollStateChanged(int state) { }
+            public void onPageScrollStateChanged(int state) {
+            }
         });
 
-        //LOCATION
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-
-        mFusedLocationProviderClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        if (location != null) {
-                            lastKnownLocation = location;
-                            System.out.println("LAST KNOWN LOCATION "+lastKnownLocation);
-                        }
-                    }
-                });
     }
 
-    public void setDefaultTab(int tabNumber){
+    public void setDefaultTab(int tabNumber) {
         mViewPager.setCurrentItem(tabNumber, false); //default tab is board tab
 
         //since default tab is board tab, we want to hide reward fab and only display board fab.
-        if(mViewPager.getCurrentItem() == 0){ //if current tab is the reward tab
+        if (mViewPager.getCurrentItem() == 0) { //if current tab is the reward tab
             fabCreatePost.hide();
             fabCreateReward.show();
         }
 
-        if(mViewPager.getCurrentItem() == 1){ //if current tab is the board tab
+        if (mViewPager.getCurrentItem() == 1) { //if current tab is the board tab
             fabCreatePost.show();
             fabCreateReward.hide();
         }
 
-        if(mViewPager.getCurrentItem() == 2){ //if current tab is the highscore tab
+        if (mViewPager.getCurrentItem() == 2) { //if current tab is the highscore tab
             fabCreatePost.hide();
             fabCreateReward.hide();
         }
     }
 
-    public void sendUserToLoginActivity(){
+    public void sendUserToLoginActivity() {
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
     }
@@ -240,23 +230,20 @@ public class MainActivity extends AppCompatActivity {
         mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.getChildrenCount() > 0){ //if there are any posts
+                if (dataSnapshot.getChildrenCount() > 0) { //if there are any posts
                     int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, because posts are already inversed as they need to be displayed from top to bottom.
 
-                    for(DataSnapshot posts : dataSnapshot.getChildren()){ //get all posts
-                        if(i == currentButtonPos){ //since we want to add values to a CERTAIN post, we get the post index from the for-loop, and if that post index is the same as the button index then add upvote
-                            if(!dataSnapshot.child(posts.getKey()).child("upvotes").hasChild(prefs.getString("username", null))){ //if user has not upvoted the post yet, allow upvote
-                                if(!dataSnapshot.child(posts.getKey()).child("author").getValue().toString().equals(prefs.getString("username", null))){ //you cannot like your own post!
+                    for (DataSnapshot posts : dataSnapshot.getChildren()) { //get all posts
+                        if (i == currentButtonPos) { //since we want to add values to a CERTAIN post, we get the post index from the for-loop, and if that post index is the same as the button index then add upvote
+                            if (!dataSnapshot.child(posts.getKey()).child("upvotes").hasChild(prefs.getString("username", null))) { //if user has not upvoted the post yet, allow upvote
+                                if (!dataSnapshot.child(posts.getKey()).child("author").getValue().toString().equals(prefs.getString("username", null))) { //you cannot like your own post!
                                     mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
                                     incrementUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
-                                }
-                                else
-                                {
-                                    Toast errorToast = Toast.makeText(getApplicationContext(),R.string.upvote_own_post_not_allowed, Toast.LENGTH_SHORT);
+                                } else {
+                                    Toast errorToast = Toast.makeText(getApplicationContext(), R.string.upvote_own_post_not_allowed, Toast.LENGTH_SHORT);
                                     errorToast.show();
                                 }
-                            }
-                            else //else if user has upvoted already, remove upvote
+                            } else //else if user has upvoted already, remove upvote
                             {
                                 mDatabase.child("posts").child(posts.getKey()).child("upvotes").child(prefs.getString("username", null)).removeValue();
                                 decrementUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString());
@@ -274,11 +261,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void incrementUpvote(final String postAuthor){
+    public void incrementUpvote(final String postAuthor) {
         mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.hasChild(postAuthor)){ //if post author exists in the database
+                if (dataSnapshot.hasChild(postAuthor)) { //if post author exists in the database
                     int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
                     int incrementedUpvote = currentUpvote + 1;
                     mDatabase.child("users").child(postAuthor).child("upvotes").setValue(incrementedUpvote);
@@ -292,11 +279,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void decrementUpvote(final String postAuthor){
+    public void decrementUpvote(final String postAuthor) {
         mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.hasChild(postAuthor)) { //if post author exists in the database
+                if (dataSnapshot.hasChild(postAuthor)) { //if post author exists in the database
                     int currentUpvote = Integer.valueOf(dataSnapshot.child(postAuthor).child("upvotes").getValue().toString());
                     int decrementedUpvote = currentUpvote - 1;
                     mDatabase.child("users").child(postAuthor).child("upvotes").setValue(decrementedUpvote);
@@ -349,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            switch (position){
+            switch (position) {
                 case 0:
                     RewardActivity tab1 = new RewardActivity();
                     return tab1;
@@ -381,6 +368,54 @@ public class MainActivity extends AppCompatActivity {
                     return "Highscore";
             }
             return null;
+        }
+    }
+
+    public void requestPermissions(){
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            //if permissions weren't already granted, ask for permissions now (example: logging in for the first time on the app)
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_LOCATION);
+        } else {
+            // else if permissions have already been granted, continue as usual
+            mFusedLocationProviderClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            if (location != null) {
+                                lastKnownLocation = location;
+                                System.out.println("LAST KNOWN LOCATION " + lastKnownLocation);
+                            }
+                        }
+                    });
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == REQUEST_LOCATION) {
+            for(int i = 0; i < grantResults.length; i++){ //check if EVERY SINGLE permission has been granted
+                if (grantResults.length == 3 && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                    // We can now safely use the API we requested access to
+                    if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                        mFusedLocationProviderClient.getLastLocation()
+                                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                                    @Override
+                                    public void onSuccess(Location location) {
+                                        if (location != null) {
+                                            lastKnownLocation = location;
+                                            System.out.println("LAST KNOWN LOCATION " + lastKnownLocation);
+                                        }
+                                    }
+                                });
+                    }
+                } else { // Permission was denied or request was cancelled
+                    finish(); //close app if permission isn't granted
+                }
+            }
         }
     }
 }
