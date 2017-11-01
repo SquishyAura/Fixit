@@ -256,11 +256,12 @@ public class MainActivity extends AppCompatActivity {
                     for (DataSnapshot rewards : dataSnapshot.getChildren()) { //get all rewards
                         if (i == currentButtonPos) { //since we want to add values to a CERTAIN reward, we get the reward index from the for-loop, and if that reward index is the same as the button index then buy reward
                             if(dataSnapshot.child(rewards.getKey()).child("cooldown").hasChild(prefs.getString("username", null))){ //if user has cooldown
-                                if(dataSnapshot.child(rewards.getKey()).child("cooldown").child(prefs.getString("username", null)).getValue().toString().compareTo(currentTimeStamp) >= 0){ //if user is not on buy cooldown for the certain reward
+                                if(dataSnapshot.child(rewards.getKey()).child("cooldown").child(prefs.getString("username", null)).getValue().toString().compareTo(currentTimeStamp) <= 0){ //if user is not on buy cooldown for the certain reward
+                                    System.out.println("rawr");
                                     deductUserPoint(prefs.getString("username", null), rewards.getKey(), Integer.valueOf(dataSnapshot.child(rewards.getKey()).child("price").getValue().toString()), futureTimeStamp);
                                 }
                                 else{
-                                    String cooldownStr = getString(R.string.reward_buy_cooldown, futureTimeStamp);
+                                    String cooldownStr = getString(R.string.reward_buy_cooldown, dataSnapshot.child(rewards.getKey()).child("cooldown").child(prefs.getString("username", null)).getValue().toString());
                                     Toast.makeText(getApplicationContext(), cooldownStr, Toast.LENGTH_LONG).show();
                                 }
                             }
