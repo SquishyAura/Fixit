@@ -48,7 +48,7 @@
 
         <activity
             android:name=".MapsActivity"
-            android:label="@string/title_activity_maps"></activity>
+            android:label="@string/title_activity_maps" />
 
         <!-- Provider for taking pictures -->
         <provider
@@ -63,7 +63,8 @@
 
         <activity
             android:name=".NavigationActivity"
-            android:label="@string/title_activity_navigation"></activity>
+            android:label="@string/title_activity_navigation" />
+        <activity android:name=".DisplayImageActivity"></activity>
     </application>
 
 </manifest>

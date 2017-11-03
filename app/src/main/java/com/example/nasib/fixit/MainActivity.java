@@ -4,6 +4,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.os.Build;
 import android.support.design.widget.TabLayout;
@@ -28,7 +30,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,9 +49,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -80,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
 
     //Post thresholds
     private static final int POST_APPROVAL_THRESHOLD = 5;
+    private static final int POST_DUPLICATE_THRESHOLD = 5;
+    private static final int POST_REPORT_THRESHOLD = 5;
     private static final int REWARD_COOLDOWN_DURATION_DAYS = 7;
 
     @Override
@@ -89,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("FIXIT");
+        toolbar.setTitleTextColor(Color.parseColor("#ffffff"));
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -236,11 +247,73 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void btnDisplayImageOnClick(View view) {
+        final int currentButtonPos = (int) view.getTag(); //we get button position from the listview, since every post in listview has a button.
+
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getChildrenCount() > 0) { //if there are any posts
+                    int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, since posts are already inversed as they need to be displayed from top to bottom.
+
+                    for(DataSnapshot posts : dataSnapshot.getChildren()){
+                        if (i == currentButtonPos) { //since we want to get a CERTAIN post o,age, we get the post index from the for-loop, and if that post index is the same as the button index then get image
+                            if (dataSnapshot.child(posts.getKey()).child("image").getValue().toString().equals("")) { //if user has not upvoted the post yet, allow upvote
+                                Toast.makeText(getApplicationContext(), R.string.post_display_no_image, Toast.LENGTH_LONG).show();
+                            }
+                            else
+                            {
+                                Intent intent = new Intent(getApplicationContext(), DisplayImageActivity.class);
+                                intent.putExtra("imageBase64", posts.getKey());
+                                startActivity(intent);
+                            }
+                        }
+                        i--;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void btnDisplayMapOnClick(View view) {
+        final int currentButtonPos = (int) view.getTag();
+
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getChildrenCount() > 0) { //if there are any posts
+                    int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, since posts are already inversed as they need to be displayed from top to bottom.
+
+                    for (DataSnapshot posts : dataSnapshot.getChildren()) {
+                        if(i == currentButtonPos) {
+                            Intent goToNavigationActivity = new Intent(getApplicationContext(), NavigationActivity.class);
+                            goToNavigationActivity.putExtra("latitude", String.valueOf(dataSnapshot.child(posts.getKey()).child("location").child("latitude").getValue().toString()));
+                            goToNavigationActivity.putExtra("longitude", String.valueOf(dataSnapshot.child(posts.getKey()).child("location").child("longitude").getValue().toString()));
+                            startActivity(goToNavigationActivity);
+                        }
+                        i--;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     public void btnBuyRewardOnClick(View view) {
         final int currentButtonPos = (int) view.getTag(); //we get button position from the listview, since every post in listview has a button.
 
         mDatabase.child("rewards").addListenerForSingleValueEvent(new ValueEventListener() {
-
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getChildrenCount() > 0) { //if there are any rewards
@@ -257,7 +330,6 @@ public class MainActivity extends AppCompatActivity {
                         if (i == currentButtonPos) { //since we want to add values to a CERTAIN reward, we get the reward index from the for-loop, and if that reward index is the same as the button index then buy reward
                             if(dataSnapshot.child(rewards.getKey()).child("cooldown").hasChild(prefs.getString("username", null))){ //if user has cooldown
                                 if(dataSnapshot.child(rewards.getKey()).child("cooldown").child(prefs.getString("username", null)).getValue().toString().compareTo(currentTimeStamp) <= 0){ //if user is not on buy cooldown for the certain reward
-                                    System.out.println("rawr");
                                     deductUserPoint(prefs.getString("username", null), rewards.getKey(), Integer.valueOf(dataSnapshot.child(rewards.getKey()).child("price").getValue().toString()), futureTimeStamp);
                                 }
                                 else{
@@ -299,8 +371,7 @@ public class MainActivity extends AppCompatActivity {
                                     incrementPostUpovote(posts.getKey());
                                     incrementUserUpvote(dataSnapshot.child(posts.getKey()).child("author").getValue().toString(), posts.getKey(), dataSnapshot.child(posts.getKey()).child("status").getValue().toString());
                                 } else {
-                                    Toast errorToast = Toast.makeText(getApplicationContext(), R.string.upvote_own_post_not_allowed, Toast.LENGTH_SHORT);
-                                    errorToast.show();
+                                    Toast.makeText(getApplicationContext(), R.string.upvote_own_post_not_allowed, Toast.LENGTH_SHORT).show();
                                 }
                             } else //else if user has upvoted already, remove upvote
                             {
@@ -426,6 +497,169 @@ public class MainActivity extends AppCompatActivity {
 
     public void approvePost(final String postKey){
         mDatabase.child("posts").child(postKey).child("status").setValue("Approved"); //approve post
+    }
+
+    public void btnShowMoreOnClick(final View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.choose_an_option);
+
+        //radiobutton options
+        CharSequence[] options = {getString(R.string.mark_as_duplicate), getString(R.string.report_this_post)};
+        final String[] selectedOption = new String[1];
+        builder.setSingleChoiceItems(options, -1, new DialogInterface.OnClickListener() { //-1 means no option is selected
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                selectedOption[0] = String.valueOf(which);
+            }
+        });
+
+        //ok button
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {}
+        });
+
+        //cancel button
+        builder.setPositiveButton(R.string.send_in, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {}
+        });
+
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        //we have this code in order to prevent the ok button from closing once it's being pressed.
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Boolean wantToCloseDialog = false;
+                //Do stuff, possibly set wantToCloseDialog to true then...
+                if(wantToCloseDialog) {
+                    dialog.dismiss();
+                }
+                else{
+                    if(selectedOption[0] == null){
+                        Toast.makeText(getApplicationContext(), R.string.choose_an_option, Toast.LENGTH_SHORT).show();
+                    }
+                    else
+                    {
+                        int currentButtonPos = (int) view.getTag(); //we get button position from the listview, since every post in listview has a button.
+
+                        if(selectedOption[0].equals("0")){ //if duplicate option is selected
+                            markPostAsDuplicate(currentButtonPos, dialog);
+                        }
+                        else if(selectedOption[0].equals("1")) //else if report option is selected
+                        {
+                            reportPost(currentButtonPos, dialog);
+                        }
+
+                    }
+                }
+                //else dialog stays open. Make sure you have an obvious way to close the dialog especially if you set cancellable to false.
+            }
+        });
+    }
+
+    public void markPostAsDuplicate(final int listViewPosition, final AlertDialog dialog){
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getChildrenCount() > 0) { //if there are any posts
+                    int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, since posts are already inversed as they need to be displayed from top to bottom.
+
+                    for(DataSnapshot posts : dataSnapshot.getChildren()) {
+                        if (i == listViewPosition) { //since we want to get a CERTAIN post, we get the post index from the for-loop, and if that post index is the same as the listview spinner index, then continue
+                            if (!dataSnapshot.child(posts.getKey()).child("duplicates").hasChild(prefs.getString("username", null))) { //if user has not marked the post as duplicate yet, allow marking
+                                incrementDuplicate(posts.getKey());
+                                Toast.makeText(getApplicationContext(), R.string.mark_as_duplicate_success, Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            }
+                            else
+                            {
+                                Toast.makeText(getApplicationContext(), R.string.mark_as_duplicate_fail, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        i--;
+                    }
+                }
+            }
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void incrementDuplicate(final String postKey){
+        mDatabase.child("posts").child(postKey).child("duplicates").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
+
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.child(postKey).child("duplicates").getChildrenCount() >= POST_DUPLICATE_THRESHOLD && //if post has been marked at least 5 times as duplicate
+                        !dataSnapshot.child(postKey).child("status").getValue().toString().equals("Approved")){  //and if post hasn't been approved yet
+                    mDatabase.child("posts").child(postKey).child("status").setValue("Duplicated"); //mark post as duplicated
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void reportPost(final int listViewPosition, final AlertDialog dialog){
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.getChildrenCount() > 0) { //if there are any posts
+                    int i = (int) dataSnapshot.getChildrenCount() - 1; //-1 because an array starts at 0, not 1. Also, we start at array size and decrement because we're inversing the indexes, since posts are already inversed as they need to be displayed from top to bottom.
+
+                    for(DataSnapshot posts : dataSnapshot.getChildren()) {
+                        if (i == listViewPosition) { //since we want to get a CERTAIN post, we get the post index from the for-loop, and if that post index is the same as the listview spinner index, then continue
+                            if (!dataSnapshot.child(posts.getKey()).child("reports").hasChild(prefs.getString("username", null))) { //if user has not reported the post yet, allow reporting
+                                incrementReport(posts.getKey());
+                                Toast.makeText(getApplicationContext(), R.string.report_this_post_success, Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            }
+                            else
+                            {
+                                Toast.makeText(getApplicationContext(), R.string.report_this_post_fail, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        i--;
+                    }
+                }
+            }
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void incrementReport(final String postKey){
+        mDatabase.child("posts").child(postKey).child("reports").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
+
+        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.child(postKey).child("reports").getChildrenCount() >= POST_REPORT_THRESHOLD && //if post has been reported at least 5 times
+                        !dataSnapshot.child(postKey).child("status").getValue().toString().equals("Approved")){  //and if post hasn't been approved yet
+                    mDatabase.child("posts").child(postKey).child("status").setValue("Reported"); //mark post as reported
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override

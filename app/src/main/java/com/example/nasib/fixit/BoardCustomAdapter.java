@@ -3,16 +3,30 @@ package com.example.nasib.fixit;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.location.Location;
+import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
+
+import java.sql.SQLOutput;
 import java.util.List;
 
 /**
@@ -27,9 +41,11 @@ public class BoardCustomAdapter extends BaseAdapter {
     List<Location> locationList;
     List<String> imageList;
     List<String> authorList;
+    List<Boolean> myLikes;
     LayoutInflater inflater;
+    DatabaseReference mDatabase;
 
-    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<Location> locationList, List<String> statusList, List<String> imageList, List<String> authorList) {
+    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<Location> locationList, List<String> statusList, List<String> imageList, List<String> authorList, List<Boolean> myLikes) {
         this.context = applicationContext;
         this.descriptionList = descriptionList;
         this.upvoteList = upvoteList;
@@ -37,6 +53,7 @@ public class BoardCustomAdapter extends BaseAdapter {
         this.statusList = statusList;
         this.imageList = imageList;
         this.authorList = authorList;
+        this.myLikes = myLikes;
         inflater = (LayoutInflater.from(applicationContext));
     }
 
@@ -61,30 +78,69 @@ public class BoardCustomAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         convertView = inflater.inflate(R.layout.activity_board_list_view, null);
 
-        TextView descriptionListTextView = (TextView) convertView.findViewById(R.id.boardDescriptionText);
-        TextView upvoteListTextView = (TextView) convertView.findViewById(R.id.boardUpvoteText);
-        Button upvoteBtn = (Button) convertView.findViewById(R.id.boardUpvoteButton);
         TextView statusListTextView = (TextView) convertView.findViewById(R.id.boardStatus);
-        ImageView imageView = (ImageView) convertView.findViewById(R.id.boardImage);
+        TextView descriptionListTextView = (TextView) convertView.findViewById(R.id.boardDescriptionText);
         TextView authorListTextView = (TextView) convertView.findViewById(R.id.boardAuthor);
+        Button upvoteBtn = (Button) convertView.findViewById(R.id.boardUpvoteButton);
+        Button displayImage = (Button) convertView.findViewById(R.id.boardImageButton);
+        Button displayMap = (Button) convertView.findViewById(R.id.boardMapButton);
+        Button showMore = (Button) convertView.findViewById(R.id.boardShowMore);
 
         upvoteBtn.setTag(position); //set position to a button in order to track which button is being pressed.
-
-        if(imageList.get(position).equals("")){ //if no image has been selected in the create post activity
-            imageView.setImageResource(R.mipmap.no_image_available);
-        }
-        else //else if an image was selected and stored as a base64 string
-        {
-            byte[] decodedString = Base64.decode(imageList.get(position), Base64.DEFAULT);
-            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-            imageView.setImageBitmap(decodedByte);
-        }
+        displayImage.setTag(position);
+        displayMap.setTag(position);
+        showMore.setTag(position);
 
         descriptionListTextView.setText(descriptionList.get(position));
-        upvoteListTextView.setText("Upvotes: " + upvoteList.get(position));
-        statusListTextView.setText("Status: " + statusList.get(position));
-        authorListTextView.setText("Author: " + authorList.get(position));
+        authorListTextView.setText("By: " + authorList.get(position));
+        upvoteBtn.setText(upvoteList.get(position));
+
+        alternateColors(position, convertView);
+        assignStatusColors(position, statusListTextView);
+        assignUpvoteBtnColor(position, upvoteBtn);
+        assignImageBtnColor(position, displayImage);
 
         return convertView; //returns a row with all the textviews, images, and buttons above
+    }
+
+    public void alternateColors(int position, View convertView){
+        if(position % 2 == 0){
+            convertView.findViewById(R.id.boardPostContent).setBackgroundColor(Color.parseColor("#ededed"));
+        }
+        else{
+            convertView.findViewById(R.id.boardPostContent).setBackgroundColor(Color.parseColor("#f7f7f7"));
+        }
+    }
+
+    public void assignStatusColors(int position, TextView statusListTextView){
+        if(statusList.get(position).equals("Pending")){
+            statusListTextView.setBackgroundColor(Color.parseColor("#f2e237"));
+        }
+        else if(statusList.get(position).equals("Approved")){
+            statusListTextView.setBackgroundColor(Color.parseColor("#48a999"));
+        }
+        else if(statusList.get(position).equals("Reported") || statusList.get(position).equals("Duplicated")){
+            statusListTextView.setBackgroundColor(Color.parseColor("#e2a59c"));
+        }
+    }
+
+    public void assignUpvoteBtnColor(int position, Button upvoteBtn){
+        if(myLikes.get(position)){
+            upvoteBtn.setBackgroundResource(R.mipmap.ic_thumb_up_green_24dp);
+        }
+        else
+        {
+            upvoteBtn.setBackgroundResource(R.mipmap.ic_thumb_up_grey_24dp);
+        }
+    }
+
+    public void assignImageBtnColor(int position, Button displayImage){
+        if(imageList.get(position).length() == 0){
+            displayImage.setBackgroundResource(R.mipmap.ic_image_grey_24dp);
+        }
+        else
+        {
+            displayImage.setBackgroundResource(R.mipmap.ic_image_cyan_24dp);
+        }
     }
 }

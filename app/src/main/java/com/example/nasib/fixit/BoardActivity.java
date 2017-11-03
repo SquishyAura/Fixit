@@ -5,7 +5,9 @@ package com.example.nasib.fixit;
  */
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
 import android.support.v4.app.Fragment;
@@ -17,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 
 import com.example.nasib.fixit.Entities.Post;
 import com.example.nasib.fixit.Entities.User;
@@ -31,8 +34,9 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.zip.Inflater;
 
-public class BoardActivity extends Fragment{
+public class BoardActivity extends Fragment {
     ListView boardList;
     BoardCustomAdapter customAdapter;
 
@@ -42,6 +46,9 @@ public class BoardActivity extends Fragment{
     List<String> statusList;
     List<String> imageList;
     List<String> authorList;
+
+    SharedPreferences prefs;
+    List<Boolean> myLikes;
 
     private DatabaseReference database;
 
@@ -60,7 +67,9 @@ public class BoardActivity extends Fragment{
         statusList = new ArrayList<>();
         imageList = new ArrayList<>();
         authorList = new ArrayList<>();
+        myLikes = new ArrayList<>();
         database = FirebaseDatabase.getInstance().getReference();
+        prefs = getActivity().getApplicationContext().getSharedPreferences("Fixit_Preferences", Context.MODE_PRIVATE);
 
         boardList = (ListView) view.findViewById(R.id.boardListView); //creates a simple list with the layout of fragment_board.xml
 
@@ -74,20 +83,36 @@ public class BoardActivity extends Fragment{
                 statusList.clear();
                 imageList.clear();
                 authorList.clear();
+                myLikes.clear();
 
                 for(DataSnapshot post : dataSnapshot.getChildren()){
-                    descriptionList.add(post.child("description").getValue().toString());
-                    upvoteList.add(post.child("upvotes").getChildrenCount() + "");
-                    String[] locationString = post.child("location").getValue().toString().split(",");
-                    String[] longitude = locationString[4].split("=");
-                    String[] latitude = locationString[5].split("=");
-                    Location location = new Location(LocationManager.GPS_PROVIDER);
-                    location.setLongitude(Double.parseDouble(longitude[1]));
-                    location.setLatitude(Double.parseDouble(latitude[1]));
-                    locationList.add(location);
-                    statusList.add(post.child("status").getValue().toString());
-                    imageList.add(post.child("image").getValue().toString());
-                    authorList.add(post.child("author").getValue().toString());
+                    if(post.child("status").getValue().toString().equals("Pending") || post.child("status").getValue().toString().equals("Approved")){ //only display posts on the board that are marked as pending or approved
+                        descriptionList.add(post.child("description").getValue().toString());
+                        upvoteList.add(post.child("upvotes").getChildrenCount() + "");
+                        String[] locationString = post.child("location").getValue().toString().split(",");
+                        String[] longitude = locationString[4].split("=");
+                        String[] latitude = locationString[5].split("=");
+                        Location location = new Location(LocationManager.GPS_PROVIDER);
+                        location.setLongitude(Double.parseDouble(longitude[1]));
+                        location.setLatitude(Double.parseDouble(latitude[1]));
+                        locationList.add(location);
+                        statusList.add(post.child("status").getValue().toString());
+                        imageList.add(post.child("image").getValue().toString());
+                        authorList.add(post.child("author").getValue().toString());
+
+                        if(prefs.getString("username", null) == null){ //if user opens app for the first time, there is no shared prefs yet.
+                            myLikes.add(false);
+                        }
+                        else{
+                            if(post.child("upvotes").hasChild(prefs.getString("username", null))){
+                                myLikes.add(true);
+                            }
+                            else
+                            {
+                                myLikes.add(false);
+                            }
+                        }
+                    }
                 }
 
                 //reverse list in order to display newest post at the top
@@ -97,8 +122,9 @@ public class BoardActivity extends Fragment{
                 Collections.reverse(statusList);
                 Collections.reverse(imageList);
                 Collections.reverse(authorList);
+                Collections.reverse(myLikes);
 
-                customAdapter = new BoardCustomAdapter(getActivity(), descriptionList, upvoteList, locationList, statusList, imageList, authorList);
+                customAdapter = new BoardCustomAdapter(getActivity(), descriptionList, upvoteList, locationList, statusList, imageList, authorList, myLikes);
 
                 if(boardList.getAdapter() == null){
                     boardList.setAdapter(customAdapter);
@@ -113,15 +139,6 @@ public class BoardActivity extends Fragment{
 
             }
         });
-
-        boardList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent goToNavigationActivity = new Intent(getContext(), NavigationActivity.class);
-                goToNavigationActivity.putExtra("latitude", String.valueOf(customAdapter.getLocation(position).getLatitude()));
-                goToNavigationActivity.putExtra("longitude", String.valueOf(customAdapter.getLocation(position).getLongitude()));
-                startActivity(goToNavigationActivity);
-            }
-        });
     }
+
 }

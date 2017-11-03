@@ -65,14 +65,13 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
                     double longtitude = location.getLongitude();
                     myLocation = new LatLng(latitude, longtitude);
                     mMap.addMarker(new MarkerOptions().position(myLocation).title("My current position"));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 13f));
-
 
                     //GET DESTINATION
                     String destinationLatitude = getIntent().getStringExtra("latitude");
                     String destinationLongitude = getIntent().getStringExtra("longitude");
                     LatLng destination = new LatLng(Double.parseDouble(destinationLatitude), Double.parseDouble(destinationLongitude));
                     mMap.addMarker(new MarkerOptions().position(destination).title("Destination"));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 13f));
                 }
 
                 @Override

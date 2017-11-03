@@ -40,4 +40,14 @@
     <string name="reward_buy_cooldown">You are on a cooldown. You can buy this item at %1$s</string>
     <string name="reward_buy_not_enough_points">You don\'t have enough points.</string>
     <string name="reward_buy_successful">Thanks for your purchase! You have %1$s points left.</string>
+    <string name="post_display_no_image">There is no image to display.</string>
+    <string name="choose_an_option">Choose an option</string>
+    <string name="send_in">Send in</string>
+    <string name="cancel">Cancel</string>
+    <string name="mark_as_duplicate">Mark as duplicate</string>
+    <string name="report_this_post">Report this post</string>
+    <string name="mark_as_duplicate_success">Thank you for keeping Fixit tidy!</string>
+    <string name="mark_as_duplicate_fail">You have already marked this post as a duplicate.</string>
+    <string name="report_this_post_success">Thank you for your report!</string>
+    <string name="report_this_post_fail">You have already reported this post.</string>
 </resources>

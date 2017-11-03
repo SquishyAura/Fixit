@@ -106,4 +106,8 @@ public class LoginActivity extends AppCompatActivity {
 
         mDatabase.child("users").child(username).setValue(user);
     }
+
+    //typing this method because when the user presses back, the activity should NOT finish and go back to main, but instead nothing should happen.
+    @Override
+    public void onBackPressed() {}
 }
