@@ -179,6 +179,9 @@ public class MainActivity extends AppCompatActivity {
                                 if (Boolean.valueOf(user.child("admin").getValue().toString()) == true) {
                                     fabCreateReward.show();
                                 }
+                                else {
+                                    fabCreateReward.hide();
+                                }
                             }
                         }
 
@@ -210,22 +213,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void setDefaultTab(int tabNumber) {
         mViewPager.setCurrentItem(tabNumber, false); //default tab is board tab
-
-        //since default tab is board tab, we want to hide reward fab and only display board fab.
-        if (mViewPager.getCurrentItem() == 0) { //if current tab is the reward tab
-            fabCreatePost.hide();
-            fabCreateReward.show();
-        }
-
-        if (mViewPager.getCurrentItem() == 1) { //if current tab is the board tab
-            fabCreatePost.show();
-            fabCreateReward.hide();
-        }
-
-        if (mViewPager.getCurrentItem() == 2) { //if current tab is the highscore tab
-            fabCreatePost.hide();
-            fabCreateReward.hide();
-        }
     }
 
     public void sendUserToLoginActivity() {
