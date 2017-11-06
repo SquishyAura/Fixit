@@ -62,7 +62,7 @@ public class HighscoreActivity extends Fragment {
                 Collections.reverse(nameList);
                 Collections.reverse(scoreList);
 
-                customAdapter = new HighscoreCustomAdapter(getActivity(), nameList, scoreList);
+                customAdapter = new HighscoreCustomAdapter(getContext(), nameList, scoreList);
 
                 if(highscoreList.getAdapter() == null){
                     highscoreList.setAdapter(customAdapter);

@@ -124,7 +124,7 @@ public class BoardActivity extends Fragment {
                 Collections.reverse(authorList);
                 Collections.reverse(myLikes);
 
-                customAdapter = new BoardCustomAdapter(getActivity(), descriptionList, upvoteList, locationList, statusList, imageList, authorList, myLikes);
+                customAdapter = new BoardCustomAdapter(getContext(), descriptionList, upvoteList, locationList, statusList, imageList, authorList, myLikes);
 
                 if(boardList.getAdapter() == null){
                     boardList.setAdapter(customAdapter);

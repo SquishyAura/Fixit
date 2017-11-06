@@ -71,14 +71,14 @@ public class CreateRewardActivity extends AppCompatActivity {
 
             //reduces image size, so that we don't get out of memory exception
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 2;
+            options.inSampleSize = 4;
 
             //a bitmap is created to decode the InputStream
             Bitmap imageBitmap = BitmapFactory.decodeStream(imageStream, null, options);
 
             //Write a compressed version of the bitmap to the ByteArrayOutputStream
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 75, baos);
             byte[] byteArray = baos.toByteArray();
 
             //The bytearray is lastly encoded to a base64 string, which is used to store images as strings in the database.

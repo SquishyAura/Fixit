@@ -9,8 +9,6 @@
         android:id="@+id/highscoreListView"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:divider="#000000"
-        android:dividerHeight="1dp"
         android:listSelector="#e2e2e2"
         android:footerDividersEnabled="false"
         tools:context="com.example.nasib.fixit.HighscoreActivity">

@@ -52,19 +52,16 @@ public class RewardCustomAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         convertView = inflater.inflate(R.layout.activity_reward_list_view, null);
 
-        TextView nameListTextView = (TextView) convertView.findViewById(R.id.rewardNameText);
-        TextView priceListTextView = (TextView) convertView.findViewById(R.id.rewardPriceText);
         ImageView imageView = (ImageView) convertView.findViewById(R.id.rewardImage);
         Button buyBtn = (Button) convertView.findViewById(R.id.rewardBuyButton);
 
-        nameListTextView.setText(nameList.get(position));
-        priceListTextView.setText(priceList.get(position) + ""); // + "" in order to convert to string
         //image (selecting an image when creating a reward is REQUIRED, not optional.)
         byte[] decodedString = Base64.decode(imageList.get(position), Base64.DEFAULT);
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         imageView.setImageBitmap(decodedByte);
 
         buyBtn.setTag(position);
+        buyBtn.setText("Buy " + nameList.get(position) + " for " + priceList.get(position) + " points");
 
         return convertView;
     }

@@ -77,13 +77,8 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton fabCreatePost;
     FloatingActionButton fabCreateReward;
 
-    //Last known location
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-    private Location lastKnownLocation;
-    private int distanceInMeters;
-
     //Permission
-    private static final int REQUEST_LOCATION = 2;
+    private static final int REQUEST_CODE = 2;
 
     //Post thresholds
     private static final int POST_APPROVAL_THRESHOLD = 5;
@@ -119,9 +114,6 @@ public class MainActivity extends AppCompatActivity {
 
         //Set the current tab.
         setDefaultTab(1);
-
-        //For last known location
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         //PERMISSIONS FOR LOCATION & STORAGE
         requestPermissions();
@@ -165,6 +157,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        //Displays user's username & points at the top bar
+        displayMyInfo();
 
         //Listener listens when the user changes tabs. We use this in order to dynamically hide & show certain fabs.
         mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
@@ -245,6 +240,21 @@ public class MainActivity extends AppCompatActivity {
     public void btnCreateRewardOnClick(View view) {
         Intent intent = new Intent(this, CreateRewardActivity.class);
         startActivity(intent);
+    }
+
+    public void displayMyInfo(){
+        mDatabase.child("users").child(prefs.getString("username", null)).child("points").addValueEventListener(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                getSupportActionBar().setSubtitle(prefs.getString("username", null) + " - " + dataSnapshot.getValue().toString() + " points");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void btnDisplayImageOnClick(View view) {
@@ -732,48 +742,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void requestPermissions(){
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+            ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
             ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             //if permissions weren't already granted, ask for permissions now (example: logging in for the first time on the app)
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_LOCATION);
-        } else {
-            // else if permissions have already been granted, continue as usual
-            mFusedLocationProviderClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            if (location != null) {
-                                lastKnownLocation = location;
-                                System.out.println("LAST KNOWN LOCATION " + lastKnownLocation);
-                            }
-                        }
-                    });
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION, android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == REQUEST_LOCATION) {
+        if (requestCode == REQUEST_CODE) {
             for(int i = 0; i < grantResults.length; i++){ //check if EVERY SINGLE permission has been granted
-                if (grantResults.length == 3 && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                    // We can now safely use the API we requested access to
-                    if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                        ActivityCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                        mFusedLocationProviderClient.getLastLocation()
-                                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                                    @Override
-                                    public void onSuccess(Location location) {
-                                        if (location != null) {
-                                            lastKnownLocation = location;
-                                            System.out.println("LAST KNOWN LOCATION " + lastKnownLocation);
-                                        }
-                                    }
-                                });
-                    }
-                } else { // Permission was denied or request was cancelled
-                    finish(); //close app if permission isn't granted
+                if (grantResults.length == 3 && grantResults[i] != PackageManager.PERMISSION_GRANTED) { //if not, close application
+                    finish();
                 }
             }
         }

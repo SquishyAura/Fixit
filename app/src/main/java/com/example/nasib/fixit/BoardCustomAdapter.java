@@ -95,7 +95,7 @@ public class BoardCustomAdapter extends BaseAdapter {
         authorListTextView.setText("By: " + authorList.get(position));
         upvoteBtn.setText(upvoteList.get(position));
 
-        alternateColors(position, convertView);
+        alternateBackgroundColors(position, convertView);
         assignStatusColors(position, statusListTextView);
         assignUpvoteBtnColor(position, upvoteBtn);
         assignImageBtnColor(position, displayImage);
@@ -103,7 +103,7 @@ public class BoardCustomAdapter extends BaseAdapter {
         return convertView; //returns a row with all the textviews, images, and buttons above
     }
 
-    public void alternateColors(int position, View convertView){
+    public void alternateBackgroundColors(int position, View convertView){
         if(position % 2 == 0){
             convertView.findViewById(R.id.boardPostContent).setBackgroundColor(Color.parseColor("#ededed"));
         }
