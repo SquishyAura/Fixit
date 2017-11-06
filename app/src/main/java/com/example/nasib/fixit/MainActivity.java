@@ -120,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
 
         //Check if user is registered, by checking the shared preferences file. If not then send to login page.
         if (!prefs.contains("username")) {
-            System.out.println("sender igennem 0");
             sendUserToLoginActivity();
         } else //else if user is registered in shared prefs but not in the database for some reason, remove shared preference and move to login activity.
         {
@@ -149,6 +148,11 @@ public class MainActivity extends AppCompatActivity {
                         editor.clear().commit(); //remove everything in shared preferences
                         sendUserToLoginActivity();
                     }
+                    else
+                    {
+                        //Displays user's username & points at the top bar
+                        displayMyInfo();
+                    }
                 }
             }
 
@@ -157,9 +161,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
-        //Displays user's username & points at the top bar
-        displayMyInfo();
 
         //Listener listens when the user changes tabs. We use this in order to dynamically hide & show certain fabs.
         mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
