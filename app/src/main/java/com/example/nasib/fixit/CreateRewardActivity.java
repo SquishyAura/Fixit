@@ -3,6 +3,8 @@ package com.example.nasib.fixit;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -10,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.nasib.fixit.Entities.Reward;
@@ -33,6 +37,8 @@ public class CreateRewardActivity extends AppCompatActivity {
     private DatabaseReference database;
     EditText nameInput;
     EditText priceInput;
+    ImageView thumbnail;
+    LinearLayout linearLayout;
     String imageEncodedInBase64;
     private String noImageFound = "";
     Reward reward;
@@ -49,6 +55,8 @@ public class CreateRewardActivity extends AppCompatActivity {
 
         nameInput = (EditText) findViewById(R.id.rewardNameEditText);
         priceInput = (EditText) findViewById(R.id.rewardPriceEditText);
+        thumbnail = (ImageView) findViewById(R.id.rewardImageThumbnail);
+        linearLayout = (LinearLayout) findViewById(R.id.rewardImageThumbnailContainer);
     }
 
 
@@ -83,6 +91,14 @@ public class CreateRewardActivity extends AppCompatActivity {
 
             //The bytearray is lastly encoded to a base64 string, which is used to store images as strings in the database.
             imageEncodedInBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
+            //Thumbnail
+            byte[] decodedString = Base64.decode(imageEncodedInBase64, Base64.DEFAULT);
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            thumbnail.setImageBitmap(decodedByte);
+            thumbnail.setMaxWidth(decodedByte.getWidth() / 2);
+            thumbnail.setMaxHeight(decodedByte.getHeight() / 2);
+            linearLayout.setBackgroundColor(Color.BLACK); //black outline for thumbnail
         }
     }
 

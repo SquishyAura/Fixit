@@ -10,6 +10,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -38,6 +39,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        Toast.makeText(getApplicationContext(),R.string.Tap_the_map, Toast.LENGTH_LONG).show();
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
     }
@@ -105,7 +108,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void btnMyLocationOnClick(View view) {
         Intent intent = new Intent();
-        intent.putExtra("Location", markerLocation);
+        intent.putExtra("LocationLat", markerLocation.getLatitude());
+        intent.putExtra("LocationLng", markerLocation.getLongitude());
         setResult(RESULT_OK, intent);
         finish();
 

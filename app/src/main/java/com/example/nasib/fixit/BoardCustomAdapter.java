@@ -38,26 +38,22 @@ public class BoardCustomAdapter extends BaseAdapter {
     List<String> descriptionList;
     List<String> upvoteList;
     List<String> statusList;
-    List<Location> locationList;
-    List<String> imageList;
+    List<Boolean> imageList;
     List<String> authorList;
     List<Boolean> myLikes;
     LayoutInflater inflater;
     DatabaseReference mDatabase;
 
-    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<Location> locationList, List<String> statusList, List<String> imageList, List<String> authorList, List<Boolean> myLikes) {
+    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<String> statusList, List<Boolean> imageList, List<String> authorList, List<Boolean> myLikes) {
         this.context = applicationContext;
         this.descriptionList = descriptionList;
         this.upvoteList = upvoteList;
-        this.locationList = locationList;
         this.statusList = statusList;
         this.imageList = imageList;
         this.authorList = authorList;
         this.myLikes = myLikes;
         inflater = (LayoutInflater.from(applicationContext));
     }
-
-    public Location getLocation(int position) { return locationList.get(position); }
 
     @Override
     public int getCount() {
@@ -135,7 +131,7 @@ public class BoardCustomAdapter extends BaseAdapter {
     }
 
     public void assignImageBtnColor(int position, Button displayImage){
-        if(imageList.get(position).length() == 0){
+        if(imageList.get(position) == false){
             displayImage.setBackgroundResource(R.mipmap.ic_image_grey_24dp);
         }
         else

@@ -4,20 +4,27 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.location.Location;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.nasib.fixit.Entities.Position;
 import com.example.nasib.fixit.Entities.Post;
 import com.example.nasib.fixit.Entities.User;
 import com.google.android.gms.maps.model.LatLng;
@@ -40,13 +47,17 @@ public class CreatePostActivity extends AppCompatActivity {
     Post post;
     private String noImageFound = "";
     EditText descriptionInput;
+    ImageView thumbnail;
+    LinearLayout linearLayout;
+    Button locationBtn;
     String imageEncodedInBase64;
     private SharedPreferences prefs;
     static final int REQUEST_OK_PHOTO = 1;
     static final int REQUEST_OK_LOCATION = 2;
     String mCurrentPhotoPath;
     File photoFile = null;
-    Location location;
+    double lat;
+    double lng;
 
 
     @Override
@@ -57,6 +68,9 @@ public class CreatePostActivity extends AppCompatActivity {
         prefs = getSharedPreferences("Fixit_Preferences",MODE_PRIVATE);
         database = FirebaseDatabase.getInstance().getReference();
         descriptionInput = (EditText) findViewById(R.id.descriptionEditText);
+        thumbnail = (ImageView) findViewById(R.id.postImageThumbnail);
+        linearLayout = (LinearLayout) findViewById(R.id.postImageThumbnailContainer);
+        locationBtn = (Button) findViewById(R.id.locationButtonCreatePost);
     }
 
     public void btnTakePictureOnClick(View view) {
@@ -96,10 +110,33 @@ public class CreatePostActivity extends AppCompatActivity {
             //a bitmap is created to decode the InputStream
             Bitmap imageBitmap = BitmapFactory.decodeStream(imageStream, null, options);
 
-            //rotate image 90 degrees
-            Matrix matrix = new Matrix();
-            matrix.postRotate(90);
-            imageBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imageBitmap.getWidth(), imageBitmap.getHeight(), matrix, true);
+            //gets image orientation (vertical or horizontal)
+            int rotate = 0;
+            try {
+                ExifInterface exif = new ExifInterface(photoFile.getAbsolutePath());
+                int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+                if(orientation == ExifInterface.ORIENTATION_ROTATE_270){
+                    rotate = 270;
+                    Matrix matrix = new Matrix();
+                    matrix.preRotate(rotate);
+                    imageBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imageBitmap.getWidth(), imageBitmap.getHeight(), matrix, true);
+                }
+                else if(orientation == ExifInterface.ORIENTATION_ROTATE_180){
+                    rotate = 180;
+                    Matrix matrix = new Matrix();
+                    matrix.preRotate(rotate);
+                    imageBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imageBitmap.getWidth(), imageBitmap.getHeight(), matrix, true);
+                }
+                else if(orientation == ExifInterface.ORIENTATION_ROTATE_90){
+                    rotate = 90;
+                    Matrix matrix = new Matrix();
+                    matrix.preRotate(rotate);
+                    imageBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imageBitmap.getWidth(), imageBitmap.getHeight(), matrix, true);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             //Write a compressed version of the bitmap to the ByteArrayOutputStream
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -108,11 +145,23 @@ public class CreatePostActivity extends AppCompatActivity {
 
             //The bytearray is lastly encoded to a base64 string, which is used to store images as strings in the database.
             imageEncodedInBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
+            //Thumbnail
+            byte[] decodedString = Base64.decode(imageEncodedInBase64, Base64.DEFAULT);
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            thumbnail.setImageBitmap(decodedByte);
+            //linearLayout.setRotation(rotate);
+            thumbnail.setMaxWidth(decodedByte.getWidth() / 2);
+            thumbnail.setMaxHeight(decodedByte.getHeight() / 2);
+            //black outline for thumbnail
+            linearLayout.setBackgroundColor(Color.BLACK);
         }
         else if(requestCode == REQUEST_OK_LOCATION && resultCode == RESULT_OK){
             Bundle b = data.getExtras();
-            location = (Location) b.get("Location");
-
+            lat = (double) b.get("LocationLat");
+            lng = (double) b.get("LocationLng");
+            locationBtn.setText(R.string.create_post_location_chosen);
+            Toast.makeText(getApplicationContext(),R.string.create_post_location_has_been_set, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -130,38 +179,41 @@ public class CreatePostActivity extends AppCompatActivity {
 
     public void btnSubmitPostOnClick(View view) {
         if(descriptionInput.getText().toString().trim().length() < 10 || descriptionInput.getText().toString().trim().length() > 200){
-            Toast errorToast = Toast.makeText(getApplicationContext(),R.string.create_post_failed_too_shortlong, Toast.LENGTH_LONG);
-            errorToast.show();
+            Toast.makeText(getApplicationContext(),R.string.create_post_failed_too_shortlong, Toast.LENGTH_LONG).show();
         }
-        else if(location == null){ //if location hasn't been chosen
-            Toast errorToast = Toast.makeText(getApplicationContext(),R.string.create_post_location_error, Toast.LENGTH_LONG);
-            errorToast.show();
+        else if(lat == 0 || lng == 0){ //if location hasn't been chosen
+            Toast.makeText(getApplicationContext(),R.string.create_post_location_error, Toast.LENGTH_LONG).show();
         }
         else
         {
             if(imageEncodedInBase64 != null){ //if an image is captured by the camera, that image is encoded into base64 and sent to the database.
-                post = new Post(descriptionInput.getText().toString().trim(), "", location, "Pending",  imageEncodedInBase64, prefs.getString("username", null));
+                post = new Post(descriptionInput.getText().toString().trim(), "", new Position(lat, lng), "Pending",  true, prefs.getString("username", null));
             }
             else //if no image is captured, then a premade base64 image is displayed instead, which says "NO IMAGE AVAILABLE"
             {
-                post = new Post(descriptionInput.getText().toString().trim(), "", location, "Pending", noImageFound, prefs.getString("username", null));
+                post = new Post(descriptionInput.getText().toString().trim(), "", new Position(lat, lng), "Pending", false, prefs.getString("username", null));
             }
 
+            for(int i = 0; i < 10000; i++){
+                //send a single event to the database, which pushes the post we just created
+                database.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String key = database.child("posts").push().getKey();
+                        database.child("posts").child(key).setValue(post); //we use push() to create a unique id.
+                        if(imageEncodedInBase64 != null){
+                            database.child("post-images").child(key).setValue(imageEncodedInBase64);
+                        }
+                    }
 
-            //send a single event to the database, which pushes the post we just created
-            database.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    database.child("posts").push().setValue(post); //we use push() to create a unique id.
-                }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+            }
 
-                }
-            });
-            Toast successToast = Toast.makeText(getApplicationContext(),R.string.create_post_successful, Toast.LENGTH_SHORT);
-            successToast.show();
+            Toast.makeText(getApplicationContext(),R.string.create_post_successful, Toast.LENGTH_SHORT).show();
             super.finish();
         }
     }

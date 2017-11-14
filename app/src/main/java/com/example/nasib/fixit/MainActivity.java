@@ -37,6 +37,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.nasib.fixit.Entities.Position;
 import com.example.nasib.fixit.Entities.Post;
 import com.example.nasib.fixit.Entities.User;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -95,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("FIXIT");
         toolbar.setTitleTextColor(Color.parseColor("#ffffff"));
+        toolbar.setSubtitleTextColor(Color.parseColor("#ffffff"));
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -111,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference();
         fabCreatePost = (FloatingActionButton) findViewById(R.id.fabCreatePost);
         fabCreateReward = (FloatingActionButton) findViewById(R.id.fabCreateReward);
+        fabCreatePost.show();
+        fabCreateReward.hide();
 
         //Set the current tab.
         setDefaultTab(1);
@@ -147,9 +151,7 @@ public class MainActivity extends AppCompatActivity {
                     if (!dataSnapshot.hasChild(prefs.getString("username", null)) && !prefs.getString("username", null).equals(null)) { //if database doesn't contain username and shared prefs contain username (this occurs when we delete a user through the database directly)
                         editor.clear().commit(); //remove everything in shared preferences
                         sendUserToLoginActivity();
-                    }
-                    else
-                    {
+                    } else {
                         //Displays user's username & points at the top bar
                         displayMyInfo();
                     }
@@ -171,17 +173,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 if (mViewPager.getCurrentItem() == 0) { //if current tab is the reward tab
-                    mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
-
+                    mDatabase.child("users").child(prefs.getString("username", null)).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            for (DataSnapshot user : dataSnapshot.getChildren()) { //if current user is an admin, they can create a reward
-                                if (Boolean.valueOf(user.child("admin").getValue().toString()) == true) {
-                                    fabCreateReward.show();
-                                }
-                                else {
-                                    fabCreateReward.hide();
-                                }
+                            if (Boolean.valueOf(dataSnapshot.child("admin").getValue().toString()) == true) {
+                                fabCreateReward.show();
+                            } else {
+                                fabCreateReward.hide();
                             }
                         }
 
@@ -208,7 +206,6 @@ public class MainActivity extends AppCompatActivity {
             public void onPageScrollStateChanged(int state) {
             }
         });
-
     }
 
     public void setDefaultTab(int tabNumber) {
@@ -249,7 +246,6 @@ public class MainActivity extends AppCompatActivity {
         final int currentButtonPos = (int) view.getTag(); //we get button position from the listview, since every post in listview has a button.
 
         mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
-
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getChildrenCount() > 0) { //if there are any posts
@@ -257,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
 
                     for(DataSnapshot posts : dataSnapshot.getChildren()){
                         if (i == currentButtonPos) { //since we want to get a CERTAIN post o,age, we get the post index from the for-loop, and if that post index is the same as the button index then get image
-                            if (dataSnapshot.child(posts.getKey()).child("image").getValue().toString().equals("")) { //if user has not upvoted the post yet, allow upvote
+                            if (Boolean.valueOf(dataSnapshot.child(posts.getKey()).child("image").getValue().toString()) == false) { //if user has not upvoted the post yet, allow upvote
                                 Toast.makeText(getApplicationContext(), R.string.post_display_no_image, Toast.LENGTH_LONG).show();
                             }
                             else
@@ -283,7 +279,6 @@ public class MainActivity extends AppCompatActivity {
         final int currentButtonPos = (int) view.getTag();
 
         mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
-
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.getChildrenCount() > 0) { //if there are any posts
@@ -292,8 +287,8 @@ public class MainActivity extends AppCompatActivity {
                     for (DataSnapshot posts : dataSnapshot.getChildren()) {
                         if(i == currentButtonPos) {
                             Intent goToNavigationActivity = new Intent(getApplicationContext(), NavigationActivity.class);
-                            goToNavigationActivity.putExtra("latitude", String.valueOf(dataSnapshot.child(posts.getKey()).child("location").child("latitude").getValue().toString()));
-                            goToNavigationActivity.putExtra("longitude", String.valueOf(dataSnapshot.child(posts.getKey()).child("location").child("longitude").getValue().toString()));
+                            goToNavigationActivity.putExtra("latitude", String.valueOf(dataSnapshot.child(posts.getKey()).child("position").child("latitude").getValue().toString()));
+                            goToNavigationActivity.putExtra("longitude", String.valueOf(dataSnapshot.child(posts.getKey()).child("position").child("longitude").getValue().toString()));
                             startActivity(goToNavigationActivity);
                         }
                         i--;

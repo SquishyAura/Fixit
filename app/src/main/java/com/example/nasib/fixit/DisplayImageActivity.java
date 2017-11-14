@@ -28,11 +28,11 @@ public class DisplayImageActivity extends AppCompatActivity {
         final ImageView image = (ImageView) findViewById(R.id.displayFullImage);
         final String imageKey = getIntent().getStringExtra("imageBase64");
 
-        mDatabase.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
+        mDatabase.child("post-images").child(imageKey).addListenerForSingleValueEvent(new ValueEventListener() {
 
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                byte[] decodedString = Base64.decode(dataSnapshot.child(imageKey).child("image").getValue().toString(), Base64.DEFAULT);
+                byte[] decodedString = Base64.decode(dataSnapshot.getValue().toString(), Base64.DEFAULT);
                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 image.setImageBitmap(decodedByte);
 

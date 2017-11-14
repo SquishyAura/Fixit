@@ -13,9 +13,11 @@
     <string name="title_activity_maps">Map</string>
     <string name="btn_mylocation">Continue</string>
     <string name="create_post_description">Description:</string>
-    <string name="create_post_description_hint">Describe an reported issue...</string>
+    <string name="create_post_description_hint">Describe the reported issue...</string>
     <string name="create_post_image">Upload image</string>
     <string name="create_post_location">Set location</string>
+    <string name="create_post_location_chosen">Location chosen!</string>
+    <string name="create_post_location_has_been_set">Location has been set</string>
     <string name="create_post_fixit">Fixit!</string>
     <string name="create_post_Cancel">Cancel</string>
     <string name="create_post_screen_title">Create new issue post</string>
@@ -50,4 +52,6 @@
     <string name="mark_as_duplicate_fail">You have already marked this post as a duplicate.</string>
     <string name="report_this_post_success">Thank you for your report!</string>
     <string name="report_this_post_fail">You have already reported this post.</string>
+    <string name="loading_5_more">Loading 5 more posts</string>
+    <string name="Tap_the_map">Tap the map to set position</string>
 </resources>
