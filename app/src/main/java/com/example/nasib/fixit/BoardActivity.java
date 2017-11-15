@@ -55,8 +55,12 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
     private DatabaseReference database;
     Query postsQuery;
 
-    private int posts_to_show = 5;
+    private int NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME = 5;
+    private int currentShownPosts = 0;
     private int preLast;
+    private int index = 0;
+    private String keyToStartAt = "";
+    private int numberOfReportedPosts = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -80,13 +84,124 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
         boardList = (ListView) view.findViewById(R.id.boardListView); //creates a simple list with the layout of fragment_board.xml
         boardList.setOnScrollListener(this);
 
-        loadData();
+        currentShownPosts = NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME;
+        getFirstFivePosts();
     }
 
-    private void loadData(){
-        postsQuery.limitToLast(posts_to_show).addValueEventListener(new ValueEventListener() {
+    private void getFirstFivePosts(){
+        postsQuery.limitToLast(currentShownPosts + 1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot post : dataSnapshot.getChildren()){
+                    if(index <= currentShownPosts){ //we don't actually insert the 6th element in the array, we just want the key
+                        if(post.child("status").getValue().toString().equals("Pending") || post.child("status").getValue().toString().equals("Approved")){ //only display posts on the board that are marked as pending or approved
+                            descriptionList.add(0, post.child("description").getValue().toString());
+                            upvoteList.add(0, post.child("upvotes").getChildrenCount() + "");
+                            statusList.add(0, post.child("status").getValue().toString());
+                            imageList.add(0, Boolean.valueOf(post.child("image").getValue().toString()));
+                            authorList.add(0, post.child("author").getValue().toString());
+
+                            if(prefs.getString("username", null) == null){ //if user opens app for the first time, there is no shared prefs yet.
+                                myLikes.add(0, false);
+                            }
+                            else{
+                                if(post.child("upvotes").hasChild(prefs.getString("username", null))){
+                                    myLikes.add(0, true);
+                                }
+                                else
+                                {
+                                    myLikes.add(0, false);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            numberOfReportedPosts++;
+                        }
+
+                        if(keyToStartAt.equals("")){
+                            keyToStartAt = post.getKey();
+                        }
+                        index++;
+                    }
+                }
+
+                descriptionList.remove(currentShownPosts - numberOfReportedPosts);
+                upvoteList.remove(currentShownPosts - numberOfReportedPosts);
+                statusList.remove(currentShownPosts - numberOfReportedPosts);
+                imageList.remove(currentShownPosts - numberOfReportedPosts);
+                authorList.remove(currentShownPosts - numberOfReportedPosts);
+                myLikes.remove(currentShownPosts - numberOfReportedPosts);
+
+                customAdapter = new BoardCustomAdapter(getContext(), descriptionList, upvoteList, statusList, imageList, authorList, myLikes);
+
+                if(boardList.getAdapter() == null){
+                    boardList.setAdapter(customAdapter);
+                }
+                else{
+                    ((BoardCustomAdapter)boardList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when listview is updated
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+    }
+
+    private void getFiveMorePosts(){
+        final int currentSize = descriptionList.size();
+        
+        postsQuery.limitToLast(currentShownPosts - NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME).endAt(keyToStartAt).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot post : dataSnapshot.getChildren()){
+                    if(currentShownPosts - NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME <= dataSnapshot.getChildrenCount()){
+                        if(index <= currentShownPosts) { //we don't actually insert the 6th element in the array, we just want the key
+                            if (post.child("status").getValue().toString().equals("Pending") || post.child("status").getValue().toString().equals("Approved")) { //only display posts on the board that are marked as pending or approved
+                                descriptionList.add(currentSize, post.child("description").getValue().toString());
+                                upvoteList.add(currentSize, post.child("upvotes").getChildrenCount() + "");
+                                statusList.add(currentSize, post.child("status").getValue().toString());
+                                imageList.add(currentSize, Boolean.valueOf(post.child("image").getValue().toString()));
+                                authorList.add(currentSize, post.child("author").getValue().toString());
+
+
+                                if (prefs.getString("username", null) == null) { //if user opens app for the first time, there is no shared prefs yet.
+                                    myLikes.add(false);
+                                } else {
+                                    if (post.child("upvotes").hasChild(prefs.getString("username", null))) {
+                                        myLikes.add(true);
+                                    } else {
+                                        myLikes.add(false);
+                                    }
+                                }
+                            }
+                            if(index == currentShownPosts + 1){
+                                keyToStartAt = post.getKey();
+                            }
+                            index++;
+                        }
+                    }
+                }
+
+                ((BoardCustomAdapter)boardList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when listview is updated
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+    }
+
+    private void updateData(){
+        /*
+        postsQuery.limitToLast(posts_to_show).addChildEventListener(new ChildEventListener() {
+
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 descriptionList.clear();
                 upvoteList.clear();
                 statusList.clear();
@@ -136,8 +251,21 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {}
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
         });
+        */
     }
 
     @Override
@@ -152,15 +280,13 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
 
             if(lastItem == totalItemCount)
             {
-                if(preLast!=lastItem)
+                if(preLast!=lastItem) //to avoid multiple calls for last item
                 {
-                    //to avoid multiple calls for last item
-                    posts_to_show = posts_to_show + 5;
-                    loadData();
+                    currentShownPosts = currentShownPosts + NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME;
+                    getFiveMorePosts();
                     preLast = lastItem;
                 }
             }
         }
-
     }
 }

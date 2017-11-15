@@ -194,7 +194,7 @@ public class CreatePostActivity extends AppCompatActivity {
                 post = new Post(descriptionInput.getText().toString().trim(), "", new Position(lat, lng), "Pending", false, prefs.getString("username", null));
             }
 
-            for(int i = 0; i < 10000; i++){
+            //for(int i = 0; i < 100; i++){
                 //send a single event to the database, which pushes the post we just created
                 database.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -211,7 +211,7 @@ public class CreatePostActivity extends AppCompatActivity {
 
                     }
                 });
-            }
+            //}
 
             Toast.makeText(getApplicationContext(),R.string.create_post_successful, Toast.LENGTH_SHORT).show();
             super.finish();

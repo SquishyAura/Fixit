@@ -27,6 +27,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.sql.SQLOutput;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,7 +43,8 @@ public class BoardCustomAdapter extends BaseAdapter {
     List<String> authorList;
     List<Boolean> myLikes;
     LayoutInflater inflater;
-    DatabaseReference mDatabase;
+
+    List<String> keys = new ArrayList<>();
 
     public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<String> statusList, List<Boolean> imageList, List<String> authorList, List<Boolean> myLikes) {
         this.context = applicationContext;
