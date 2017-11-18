@@ -30,6 +30,7 @@ public class RewardActivity extends Fragment {
     List<String> nameList;
     List<Integer> priceList;
     List<String> imageList;
+    List<String> pushIDs;
 
     private DatabaseReference database;
 
@@ -45,6 +46,7 @@ public class RewardActivity extends Fragment {
         nameList = new ArrayList<>();
         priceList = new ArrayList<>();
         imageList = new ArrayList<>();
+        pushIDs = new ArrayList<>();
         database = FirebaseDatabase.getInstance().getReference();
 
         rewardList = (ListView) view.findViewById(R.id.rewardListView); //creates a simple list with the layout of fragment_reward.xml
@@ -60,13 +62,15 @@ public class RewardActivity extends Fragment {
                     nameList.add(reward.child("name").getValue().toString());
                     priceList.add(Integer.parseInt(reward.child("price").getValue().toString()));
                     imageList.add(reward.child("image").getValue().toString());
+                    pushIDs.add(reward.getKey());
                 }
 
                 Collections.reverse(nameList);
                 Collections.reverse(priceList);
                 Collections.reverse(imageList);
+                Collections.reverse(pushIDs);
 
-                rewardCustomAdapter = new RewardCustomAdapter(getContext(), nameList, priceList, imageList);
+                rewardCustomAdapter = new RewardCustomAdapter(getContext(), nameList, priceList, imageList, pushIDs);
 
                 if(rewardList.getAdapter() == null) {
                     rewardList.setAdapter(rewardCustomAdapter);

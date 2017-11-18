@@ -42,11 +42,12 @@ public class BoardCustomAdapter extends BaseAdapter {
     List<Boolean> imageList;
     List<String> authorList;
     List<Boolean> myLikes;
+    List<String> pushIDs;
     LayoutInflater inflater;
 
     List<String> keys = new ArrayList<>();
 
-    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<String> statusList, List<Boolean> imageList, List<String> authorList, List<Boolean> myLikes) {
+    public BoardCustomAdapter(Context applicationContext, List<String> descriptionList, List<String> upvoteList, List<String> statusList, List<Boolean> imageList, List<String> authorList, List<Boolean> myLikes, List<String> pushIDs) {
         this.context = applicationContext;
         this.descriptionList = descriptionList;
         this.upvoteList = upvoteList;
@@ -54,8 +55,11 @@ public class BoardCustomAdapter extends BaseAdapter {
         this.imageList = imageList;
         this.authorList = authorList;
         this.myLikes = myLikes;
+        this.pushIDs = pushIDs;
         inflater = (LayoutInflater.from(applicationContext));
     }
+
+    public String getID(int position){ return pushIDs.get(position); }
 
     @Override
     public int getCount() {
@@ -84,10 +88,10 @@ public class BoardCustomAdapter extends BaseAdapter {
         Button displayMap = (Button) convertView.findViewById(R.id.boardMapButton);
         Button showMore = (Button) convertView.findViewById(R.id.boardShowMore);
 
-        upvoteBtn.setTag(position); //set position to a button in order to track which button is being pressed.
-        displayImage.setTag(position);
-        displayMap.setTag(position);
-        showMore.setTag(position);
+        upvoteBtn.setTag(pushIDs.get(position)); //set position to a button in order to track which button is being pressed.
+        displayImage.setTag(pushIDs.get(position));
+        displayMap.setTag(pushIDs.get(position));
+        showMore.setTag(pushIDs.get(position));
 
         descriptionListTextView.setText(descriptionList.get(position));
         authorListTextView.setText("By: " + authorList.get(position));
@@ -117,7 +121,7 @@ public class BoardCustomAdapter extends BaseAdapter {
         else if(statusList.get(position).equals("Approved")){
             statusListTextView.setBackgroundColor(Color.parseColor("#48a999"));
         }
-        else if(statusList.get(position).equals("Reported") || statusList.get(position).equals("Duplicated")){
+        else if(statusList.get(position).equals("Duplicated")){
             statusListTextView.setBackgroundColor(Color.parseColor("#e2a59c"));
         }
     }

@@ -23,13 +23,15 @@ public class RewardCustomAdapter extends BaseAdapter {
     List<String> nameList;
     List<Integer> priceList;
     List<String> imageList;
+    List<String> pushIDs;
     LayoutInflater inflater;
 
-    public RewardCustomAdapter(Context applicationContext, List<String> nameList, List<Integer> priceList, List<String> imageList) {
+    public RewardCustomAdapter(Context applicationContext, List<String> nameList, List<Integer> priceList, List<String> imageList, List<String> pushIDs) {
         this.context = applicationContext;
         this.nameList = nameList;
         this.priceList = priceList;
         this.imageList = imageList;
+        this.pushIDs = pushIDs;
         inflater = (LayoutInflater.from(applicationContext));
     }
 
@@ -60,7 +62,7 @@ public class RewardCustomAdapter extends BaseAdapter {
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         imageView.setImageBitmap(decodedByte);
 
-        buyBtn.setTag(position);
+        buyBtn.setTag(pushIDs.get(position));
         buyBtn.setText("Buy " + nameList.get(position) + " for " + priceList.get(position) + " points");
 
         return convertView;

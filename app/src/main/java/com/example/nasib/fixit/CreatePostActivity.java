@@ -6,18 +6,15 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.location.Location;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -26,13 +23,8 @@ import android.widget.Toast;
 
 import com.example.nasib.fixit.Entities.Position;
 import com.example.nasib.fixit.Entities.Post;
-import com.example.nasib.fixit.Entities.User;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -194,23 +186,15 @@ public class CreatePostActivity extends AppCompatActivity {
                 post = new Post(descriptionInput.getText().toString().trim(), "", new Position(lat, lng), "Pending", false, prefs.getString("username", null));
             }
 
-            //for(int i = 0; i < 100; i++){
-                //send a single event to the database, which pushes the post we just created
-                database.child("posts").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String key = database.child("posts").push().getKey();
-                        database.child("posts").child(key).setValue(post); //we use push() to create a unique id.
-                        if(imageEncodedInBase64 != null){
-                            database.child("post-images").child(key).setValue(imageEncodedInBase64);
-                        }
-                    }
+            //for(int i = 1; i <= 100; i++){
+                //post.description = String.valueOf(i);
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+                String key = database.child("posts").push().getKey(); //we use push() to create a unique id.
+                database.child("posts").child(key).setValue(post); //we set the post id as the unique id and save the whole post.
 
-                    }
-                });
+                if(imageEncodedInBase64 != null){ //if there is a image to save, save it in the 'post-images' child node.
+                    database.child("post-images").child(key).setValue(imageEncodedInBase64);
+                }
             //}
 
             Toast.makeText(getApplicationContext(),R.string.create_post_successful, Toast.LENGTH_SHORT).show();

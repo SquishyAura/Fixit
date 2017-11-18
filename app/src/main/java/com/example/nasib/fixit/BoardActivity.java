@@ -34,6 +34,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,105 +42,80 @@ import java.util.zip.Inflater;
 
 public class BoardActivity extends Fragment implements AbsListView.OnScrollListener {
     ListView boardList;
-    BoardCustomAdapter customAdapter;
 
-    List<String> descriptionList;
-    List<String> upvoteList;
-    List<String> statusList;
-    List<Boolean> imageList;
-    List<String> authorList;
-    List<Boolean> myLikes;
+    List<String> descriptionList = new ArrayList<>();
+    List<String> upvoteList = new ArrayList<>();
+    List<String> statusList = new ArrayList<>();
+    List<Boolean> imageList = new ArrayList<>();
+    List<String> authorList = new ArrayList<>();
+    List<Boolean> myLikes = new ArrayList<>();
+    List<String> pushIDs = new ArrayList<>();
+
+    BoardCustomAdapter customAdapter;
 
     SharedPreferences prefs;
 
     private DatabaseReference database;
     Query postsQuery;
 
-    private int NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME = 5;
-    private int currentShownPosts = 0;
+    private int POSTS_TO_SHOW_AT_A_TIME = 10;
     private int preLast;
     private int index = 0;
     private String keyToStartAt = "";
-    private int numberOfReportedPosts = 0;
+    public boolean noPosts = true;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_board, container, false);
+        prefs = getActivity().getApplicationContext().getSharedPreferences("Fixit_Preferences", Context.MODE_PRIVATE);
+        database = FirebaseDatabase.getInstance().getReference();
+        postsQuery = database.child("posts").orderByKey();
+        customAdapter = new BoardCustomAdapter(getContext(), descriptionList, upvoteList, statusList, imageList, authorList, myLikes, pushIDs);
+        boardList = (ListView) rootView.findViewById(R.id.boardListView); //creates a simple list with the layout of fragment_board.xml
+        boardList.setOnScrollListener(this);
+
+        //getFirstFivePosts();
+        updateData();
         return rootView;
     }
 
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        descriptionList = new ArrayList<>();
-        upvoteList = new ArrayList<>();
-        statusList = new ArrayList<>();
-        imageList = new ArrayList<>();
-        authorList = new ArrayList<>();
-        myLikes = new ArrayList<>();
-        database = FirebaseDatabase.getInstance().getReference();
-        postsQuery = database.child("posts").orderByKey();
-        prefs = getActivity().getApplicationContext().getSharedPreferences("Fixit_Preferences", Context.MODE_PRIVATE);
-
-        boardList = (ListView) view.findViewById(R.id.boardListView); //creates a simple list with the layout of fragment_board.xml
-        boardList.setOnScrollListener(this);
-
-        currentShownPosts = NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME;
-        getFirstFivePosts();
-    }
-
     private void getFirstFivePosts(){
-        postsQuery.limitToLast(currentShownPosts + 1).addValueEventListener(new ValueEventListener() {
+        index = 0;
+        postsQuery.limitToLast(POSTS_TO_SHOW_AT_A_TIME).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot post : dataSnapshot.getChildren()){
-                    if(index <= currentShownPosts){ //we don't actually insert the 6th element in the array, we just want the key
-                        if(post.child("status").getValue().toString().equals("Pending") || post.child("status").getValue().toString().equals("Approved")){ //only display posts on the board that are marked as pending or approved
+                if(dataSnapshot.hasChildren()) {
+                    for (DataSnapshot post : dataSnapshot.getChildren()) {
+                        if (index < POSTS_TO_SHOW_AT_A_TIME) { //we don't actually insert the 6th element in the array, we just want the key
                             descriptionList.add(0, post.child("description").getValue().toString());
                             upvoteList.add(0, post.child("upvotes").getChildrenCount() + "");
                             statusList.add(0, post.child("status").getValue().toString());
                             imageList.add(0, Boolean.valueOf(post.child("image").getValue().toString()));
                             authorList.add(0, post.child("author").getValue().toString());
+                            pushIDs.add(0, post.getKey());
 
-                            if(prefs.getString("username", null) == null){ //if user opens app for the first time, there is no shared prefs yet.
+                            if (prefs.getString("username", null) == null) { //if user opens app for the first time, there is no shared prefs yet.
                                 myLikes.add(0, false);
-                            }
-                            else{
-                                if(post.child("upvotes").hasChild(prefs.getString("username", null))){
+                            } else {
+                                if (post.child("upvotes").hasChild(prefs.getString("username", null))) {
                                     myLikes.add(0, true);
-                                }
-                                else
-                                {
+                                } else {
                                     myLikes.add(0, false);
                                 }
                             }
-                        }
-                        else
-                        {
-                            numberOfReportedPosts++;
-                        }
 
-                        if(keyToStartAt.equals("")){
-                            keyToStartAt = post.getKey();
+                            if (index == 0) {
+                                keyToStartAt = post.getKey();
+                            }
+
+                            index++;
                         }
-                        index++;
                     }
-                }
 
-                descriptionList.remove(currentShownPosts - numberOfReportedPosts);
-                upvoteList.remove(currentShownPosts - numberOfReportedPosts);
-                statusList.remove(currentShownPosts - numberOfReportedPosts);
-                imageList.remove(currentShownPosts - numberOfReportedPosts);
-                authorList.remove(currentShownPosts - numberOfReportedPosts);
-                myLikes.remove(currentShownPosts - numberOfReportedPosts);
-
-                customAdapter = new BoardCustomAdapter(getContext(), descriptionList, upvoteList, statusList, imageList, authorList, myLikes);
-
-                if(boardList.getAdapter() == null){
+                    customAdapter = new BoardCustomAdapter(getContext(), descriptionList, upvoteList, statusList, imageList, authorList, myLikes, pushIDs);
                     boardList.setAdapter(customAdapter);
-                }
-                else{
-                    ((BoardCustomAdapter)boardList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when listview is updated
+                    ((BoardCustomAdapter) boardList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when listview is updated
                 }
             }
 
@@ -149,41 +125,51 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
     }
 
     private void getFiveMorePosts(){
+        index = 0;
         final int currentSize = descriptionList.size();
-        
-        postsQuery.limitToLast(currentShownPosts - NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME).endAt(keyToStartAt).addValueEventListener(new ValueEventListener() {
+
+        postsQuery.limitToLast(POSTS_TO_SHOW_AT_A_TIME + 1).endAt(keyToStartAt).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot post : dataSnapshot.getChildren()){
-                    if(currentShownPosts - NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME <= dataSnapshot.getChildrenCount()){
-                        if(index <= currentShownPosts) { //we don't actually insert the 6th element in the array, we just want the key
-                            if (post.child("status").getValue().toString().equals("Pending") || post.child("status").getValue().toString().equals("Approved")) { //only display posts on the board that are marked as pending or approved
-                                descriptionList.add(currentSize, post.child("description").getValue().toString());
-                                upvoteList.add(currentSize, post.child("upvotes").getChildrenCount() + "");
-                                statusList.add(currentSize, post.child("status").getValue().toString());
-                                imageList.add(currentSize, Boolean.valueOf(post.child("image").getValue().toString()));
-                                authorList.add(currentSize, post.child("author").getValue().toString());
+                if(dataSnapshot.hasChildren()){
+                    for(DataSnapshot post : dataSnapshot.getChildren()){
+                        if(index <= dataSnapshot.getChildrenCount()) { //we don't actually insert the 6th element in the array, we just want the key
+                            descriptionList.add(currentSize, post.child("description").getValue().toString());
+                            upvoteList.add(currentSize, post.child("upvotes").getChildrenCount() + "");
+                            statusList.add(currentSize, post.child("status").getValue().toString());
+                            imageList.add(currentSize, Boolean.valueOf(post.child("image").getValue().toString()));
+                            authorList.add(currentSize, post.child("author").getValue().toString());
+                            pushIDs.add(currentSize, post.getKey());
 
-
-                                if (prefs.getString("username", null) == null) { //if user opens app for the first time, there is no shared prefs yet.
-                                    myLikes.add(false);
+                            if (prefs.getString("username", null) == null) { //if user opens app for the first time, there is no shared prefs yet.
+                                myLikes.add(currentSize, false);
+                            } else {
+                                if (post.child("upvotes").hasChild(prefs.getString("username", null))) {
+                                    myLikes.add(currentSize, true);
                                 } else {
-                                    if (post.child("upvotes").hasChild(prefs.getString("username", null))) {
-                                        myLikes.add(true);
-                                    } else {
-                                        myLikes.add(false);
-                                    }
+                                    myLikes.add(currentSize, false);
                                 }
                             }
-                            if(index == currentShownPosts + 1){
+
+                            if(index == 0){
                                 keyToStartAt = post.getKey();
                             }
+
                             index++;
                         }
                     }
-                }
 
-                ((BoardCustomAdapter)boardList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when listview is updated
+                    descriptionList.remove(currentSize - 1);
+                    upvoteList.remove(currentSize - 1);
+                    statusList.remove(currentSize - 1);
+                    imageList.remove(currentSize - 1);
+                    authorList.remove(currentSize - 1);
+                    myLikes.remove(currentSize - 1);
+                    pushIDs.remove(currentSize - 1);
+                    index--;
+
+                    ((BoardCustomAdapter)boardList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when listview is updated
+                }
             }
 
             @Override
@@ -192,67 +178,65 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
     }
 
     private void updateData(){
-        /*
-        postsQuery.limitToLast(posts_to_show).addChildEventListener(new ChildEventListener() {
+        database.child("posts").orderByKey().addChildEventListener(new ChildEventListener() {
 
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if(!pushIDs.isEmpty()){ //if arrays aren't empty, allow for new post.
+                    descriptionList.add(0, dataSnapshot.child("description").getValue().toString());
+                    upvoteList.add(0, dataSnapshot.child("upvotes").getChildrenCount() + "");
+                    statusList.add(0, dataSnapshot.child("status").getValue().toString());
+                    imageList.add(0, Boolean.valueOf(dataSnapshot.child("image").getValue().toString()));
+                    authorList.add(0, dataSnapshot.child("author").getValue().toString());
+                    myLikes.add(0, dataSnapshot.child("upvotes").hasChild(prefs.getString("username", null)));
+                    pushIDs.add(0, dataSnapshot.getKey());
 
+                    ((BoardCustomAdapter)boardList.getAdapter()).notifyDataSetChanged();
+                }
+                else //else if arrays are empty, fetch up to 5 items from the database.
+                {
+                    if(noPosts == true){ //only allow 1 batch of posts to be loaded, as onChildAdded usually fires the amount of times there are posts in the database... in other words many times.
+                        getFirstFivePosts();
+                        noPosts = false;
+                    }
+                }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                descriptionList.clear();
-                upvoteList.clear();
-                statusList.clear();
-                imageList.clear();
-                authorList.clear();
-                myLikes.clear();
+                for(int i = 0; i < pushIDs.size(); i++){
+                    if(pushIDs.get(i).equals(dataSnapshot.getKey())){
+                        descriptionList.set(i, dataSnapshot.child("description").getValue().toString());
+                        upvoteList.set(i, dataSnapshot.child("upvotes").getChildrenCount() + "");
+                        statusList.set(i, dataSnapshot.child("status").getValue().toString());
+                        imageList.set(i, Boolean.valueOf(dataSnapshot.child("image").getValue().toString()));
+                        authorList.set(i, dataSnapshot.child("author").getValue().toString());
+                        myLikes.set(i, dataSnapshot.child("upvotes").hasChild(prefs.getString("username", null)));
 
-                for(DataSnapshot post : dataSnapshot.getChildren()){
-                    if(post.child("status").getValue().toString().equals("Pending") || post.child("status").getValue().toString().equals("Approved")){ //only display posts on the board that are marked as pending or approved
-                        descriptionList.add(post.child("description").getValue().toString());
-                        upvoteList.add(post.child("upvotes").getChildrenCount() + "");
-                        statusList.add(post.child("status").getValue().toString());
-                        imageList.add(Boolean.valueOf(post.child("image").getValue().toString()));
-                        authorList.add(post.child("author").getValue().toString());
-
-                        if(prefs.getString("username", null) == null){ //if user opens app for the first time, there is no shared prefs yet.
-                            myLikes.add(false);
-                        }
-                        else{
-                            if(post.child("upvotes").hasChild(prefs.getString("username", null))){
-                                myLikes.add(true);
-                            }
-                            else
-                            {
-                                myLikes.add(false);
-                            }
-                        }
+                        ((BoardCustomAdapter)boardList.getAdapter()).notifyDataSetChanged();
                     }
-                }
-
-                //reverse list in order to display newest post at the top
-                Collections.reverse(descriptionList);
-                Collections.reverse(upvoteList);
-                Collections.reverse(statusList);
-                Collections.reverse(imageList);
-                Collections.reverse(authorList);
-                Collections.reverse(myLikes);
-
-                customAdapter = new BoardCustomAdapter(getContext(), descriptionList, upvoteList, statusList, imageList, authorList, myLikes);
-
-                if(boardList.getAdapter() == null){
-                    boardList.setAdapter(customAdapter);
-                }
-                else{
-                    ((BoardCustomAdapter)boardList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when database is updated
                 }
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
+                for(int i = 0; i < pushIDs.size(); i++){
+                    if(pushIDs.get(i).equals(dataSnapshot.getKey())){
+                        descriptionList.remove(i);
+                        upvoteList.remove(i);
+                        statusList.remove(i);
+                        imageList.remove(i);
+                        authorList.remove(i);
+                        myLikes.remove(i);
+                        pushIDs.remove(i);
 
+                        ((BoardCustomAdapter)boardList.getAdapter()).notifyDataSetChanged();
+                    }
+                }
+
+                if(pushIDs.isEmpty()){ //if there are no posts left in the database
+                    noPosts = true;
+                }
             }
 
             @Override
@@ -265,7 +249,6 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
 
             }
         });
-        */
     }
 
     @Override
@@ -282,7 +265,6 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
             {
                 if(preLast!=lastItem) //to avoid multiple calls for last item
                 {
-                    currentShownPosts = currentShownPosts + NUMBER_OF_POSTS_TO_SHOW_AT_A_TIME;
                     getFiveMorePosts();
                     preLast = lastItem;
                 }

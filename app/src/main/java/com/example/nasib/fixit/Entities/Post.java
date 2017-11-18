@@ -14,8 +14,8 @@ public class Post {
     public String upvotes; //upvotes is a string because we'll be storing who upvoted which post in a list, and then just display the list size as an integer, to show how many upvoted a post
     public Position position;
     public String status;
-    public Boolean image;
     public String author;
+    public Boolean image;
 
     public Post(){
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
