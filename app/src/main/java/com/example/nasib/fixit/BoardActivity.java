@@ -75,9 +75,45 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
         boardList = (ListView) rootView.findViewById(R.id.boardListView); //creates a simple list with the layout of fragment_board.xml
         boardList.setOnScrollListener(this);
 
-        //getFirstFivePosts();
+        //getAllPosts();
         updateData();
         return rootView;
+    }
+
+    private void  getAllPosts(){
+        postsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.hasChildren()) {
+                    for (DataSnapshot post : dataSnapshot.getChildren()) {
+                        descriptionList.add(0, post.child("description").getValue().toString());
+                        upvoteList.add(0, post.child("upvotes").getChildrenCount() + "");
+                        statusList.add(0, post.child("status").getValue().toString());
+                        imageList.add(0, Boolean.valueOf(post.child("image").getValue().toString()));
+                        authorList.add(0, post.child("author").getValue().toString());
+                        pushIDs.add(0, post.getKey());
+
+                        if (prefs.getString("username", null) == null) { //if user opens app for the first time, there is no shared prefs yet.
+                            myLikes.add(0, false);
+                        } else {
+                            if (post.child("upvotes").hasChild(prefs.getString("username", null))) {
+                                myLikes.add(0, true);
+                            } else {
+                                myLikes.add(0, false);
+                            }
+                        }
+                    }
+
+                    customAdapter = new BoardCustomAdapter(getContext(), descriptionList, upvoteList, statusList,
+                                                           imageList, authorList, myLikes, pushIDs);
+                    boardList.setAdapter(customAdapter);
+                    ((BoardCustomAdapter) boardList.getAdapter()).notifyDataSetChanged(); //prevent from scrolling to top when listview is updated
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
     }
 
     private void getFirstFivePosts(){
@@ -127,7 +163,6 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
     private void getFiveMorePosts(){
         index = 0;
         final int currentSize = descriptionList.size();
-
         postsQuery.limitToLast(POSTS_TO_SHOW_AT_A_TIME + 1).endAt(keyToStartAt).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

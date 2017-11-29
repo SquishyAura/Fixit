@@ -187,7 +187,7 @@ public class CreatePostActivity extends AppCompatActivity {
             }
 
             //for(int i = 1; i <= 100; i++){
-                //post.description = String.valueOf(i);
+            //    post.description = String.valueOf(i);
 
                 String key = database.child("posts").push().getKey(); //we use push() to create a unique id.
                 database.child("posts").child(key).setValue(post); //we set the post id as the unique id and save the whole post.

@@ -67,4 +67,14 @@
         <activity android:name=".DisplayImageActivity"></activity>
     </application>
 
+    <receiver android:name=".NavigationActivity">
+        <intent-filter>
+            <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+            <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+            <action android:name="android.intent.action.BATTERY_LOW" />
+            <action android:name="android.intent.action.BATTERY_OKAY" />
+            <action android:name="android.intent.action.BATTERY_CHANGED" />
+        </intent-filter>
+    </receiver>
+
 </manifest>
