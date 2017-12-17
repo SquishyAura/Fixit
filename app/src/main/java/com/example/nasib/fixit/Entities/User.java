@@ -13,18 +13,16 @@ public class User {
     public String username;
     public int points;
     public int upvotes;
-    public String lastPurchase;
     public boolean admin;
 
     public User(){
         // Default constructor required for calls to DataSnapshot.getValue(User.class)
     }
 
-    public User(String username, int points, int upvotes, String lastPurchase, boolean admin){
+    public User(String username, int points, int upvotes, boolean admin){
         this.username = username;
         this.points = points;
         this.upvotes = upvotes;
-        this.lastPurchase = lastPurchase;
         this.admin = admin;
     }
 

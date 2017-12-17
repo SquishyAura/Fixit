@@ -24,8 +24,6 @@ public class LoginActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private SharedPreferences.Editor editor;
     String usernameString;
-    Calendar calendar;
-    String date;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,13 +50,6 @@ public class LoginActivity extends AppCompatActivity {
             usernameString = usernameString.toLowerCase();
             usernameString = usernameString.substring(0,1).toUpperCase()+usernameString.substring(1);
 
-            calendar = Calendar.getInstance();
-
-            //Subtract with 7 because of our reward system
-            calendar.add(Calendar.DATE,-7);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            date = dateFormat.format(calendar.getTime());
-
             //Use addListenerForSingleValueEvent to trigger once to check if the username already exists,
             //once the btnLoginOnClick is pressed
             mDatabase.child("users").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -70,7 +61,7 @@ public class LoginActivity extends AppCompatActivity {
                         Toast errorToast = Toast.makeText(getApplicationContext(),R.string.toast_error_usernamealreadyexists, Toast.LENGTH_LONG);
                         errorToast.show();
                     }else{
-                        newUser(usernameString, 0, 0, date, false);
+                        newUser(usernameString, 0, 0, false);
 
                         //Save shared preference
                         editor.putString("username", usernameString);
@@ -101,8 +92,8 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void newUser(String username, int points, int upvotes, String lastPurchase, boolean admin){
-        User user = new User(username, points, upvotes, lastPurchase, admin);
+    private void newUser(String username, int points, int upvotes, boolean admin){
+        User user = new User(username, points, upvotes, admin);
 
         mDatabase.child("users").child(username).setValue(user);
     }
