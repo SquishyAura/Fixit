@@ -100,7 +100,6 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
 
                         //Check if network provider is enabled
                         if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                            System.out.println("rawrhej");
                             //noinspection MissingPermission
                             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minUpdateTimer, 0, mlocListener);
                         }
@@ -119,7 +118,6 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
 
                         //Check if network provider is enabled
                         if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                            System.out.println("rawrhej");
                             //noinspection MissingPermission
                             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minUpdateTimer, 0, mlocListener);
                         }
@@ -143,7 +141,6 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
 
         //Check if network provider is enabled
         if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            System.out.println("rawrhej");
             //noinspection MissingPermission
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minUpdateTimer, 0, mlocListener);
         }

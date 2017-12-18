@@ -58,7 +58,7 @@ public class BoardActivity extends Fragment implements AbsListView.OnScrollListe
     private DatabaseReference database;
     Query postsQuery;
 
-    private int POSTS_TO_SHOW_AT_A_TIME = 10;
+    private int POSTS_TO_SHOW_AT_A_TIME = 5;
     private int preLast;
     private int index = 0;
     private String keyToStartAt = "";

@@ -5,14 +5,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.location.Location;
-import android.os.Build;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -22,27 +17,12 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 
-import android.view.Window;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.nasib.fixit.Entities.Position;
-import com.example.nasib.fixit.Entities.Post;
-import com.example.nasib.fixit.Entities.User;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -50,11 +30,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -334,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
                 if(dataSnapshot.exists()){
                     if (!dataSnapshot.child("upvotes").hasChild(prefs.getString("username", null))) { //if user has not upvoted the post yet, allow upvote
                         if (!dataSnapshot.child("author").getValue().toString().equals(prefs.getString("username", null))) { //you cannot like your own post!
-                            incrementPostUpovote(String.valueOf(view.getTag()));
+                            incrementPostUpvote(String.valueOf(view.getTag()));
                             incrementUserUpvote(dataSnapshot.child("author").getValue().toString(), String.valueOf(view.getTag()), dataSnapshot.child("status").getValue().toString());
                         } else {
                             Toast.makeText(getApplicationContext(), R.string.upvote_own_post_not_allowed, Toast.LENGTH_SHORT).show();
@@ -354,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void incrementPostUpovote(final String postKey){
+    public void incrementPostUpvote(final String postKey){
         mDatabase.child("posts").child(postKey).child("upvotes").child(prefs.getString("username", null)).setValue(prefs.getString("username", null));
 
         mDatabase.child("posts").child(postKey).addListenerForSingleValueEvent(new ValueEventListener() {
