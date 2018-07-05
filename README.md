@@ -1,0 +1,2 @@
+# Fixit
+Fixit is an Android application that is developed in Android Studio as a prototype. Fixit allows its users to report environmental issues to the municipality. As Fixit relies on information being crowdsourced from its users, gamification elements are used to motivate the users reporting environmental damage. Those gamification elements consist of things such as a leader-board, where users can compete against each other and be rewarded.
